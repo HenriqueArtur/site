@@ -1,32 +1,80 @@
 ---
 import { cssVariables } from '../lib/design/css-variables.ts';
 import { tokens } from '../lib/design/tokens.ts';
+import { localePath } from '../lib/i18n/locale-path.ts';
+import { defaultLocale, type Locale, locales } from '../lib/i18n/locales.ts';
+import { redirectTarget } from '../lib/i18n/redirect-target.ts';
+import { ui } from '../lib/i18n/ui.ts';
+import { LOCALE_KEY } from '../scripts/language/remember-choice.ts';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
 interface Props {
   title: string;
   description: string;
-  lang?: string;
-  canonical?: string;
+  locale: Locale;
 }
 
-const { title, description, lang = 'pt-BR', canonical } = Astro.props;
+const { title, description, locale } = Astro.props;
+const { pathname } = Astro.url;
 
 // As custom properties saem dos mesmos tokens que os testes de contraste leem.
 const variables = cssVariables(tokens);
 
-const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
+const canonical = new URL(localePath(pathname, locale), Astro.site).href;
+
+const alternates = locales.map((option) => ({
+  hreflang: option,
+  href: new URL(localePath(pathname, option), Astro.site).href,
+}));
+
+/*
+ * Detecção de idioma.
+ *
+ * Roda inline e de forma bloqueante no <head>, de propósito: um script diferido
+ * redirecionaria depois da primeira pintura, e o usuário veria a página piscar
+ * do português para o inglês.
+ *
+ * A função vem de redirectTarget, serializada com toString() — é literalmente o
+ * mesmo código coberto pelos testes, em vez de uma segunda cópia da regra
+ * escrita à mão aqui dentro, que sairia de sincronia sem ninguém notar.
+ */
+const detection = `
+(function () {
+  var saved = null;
+  try { saved = localStorage.getItem(${JSON.stringify(LOCALE_KEY)}); } catch (e) {}
+  var decide = ${redirectTarget.toString()};
+  var target = decide(location.pathname, navigator.languages || [], saved);
+  if (target) location.replace(target + location.search + location.hash);
+})();
+`.trim();
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalUrl} />
+
+    <link rel="canonical" href={canonical} />
+    {
+      alternates.map((alternate) => (
+        <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+      ))
+    }
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL(localePath(pathname, defaultLocale), Astro.site).href}
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale.replace('-', '_')} />
 
     <!-- A fonte de corpo é a única no caminho crítico de leitura. -->
     <link
@@ -38,10 +86,11 @@ const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
     />
 
     <style set:html={`:root {\n${variables}}`}></style>
+    <script is:inline set:html={detection} />
   </head>
 
   <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <a class="skip-link" href="#conteudo">{ui.skipToContent[locale]}</a>
     <slot />
   </body>
 </html>

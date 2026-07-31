@@ -1,0 +1,79 @@
+---
+import { localePath } from '../lib/i18n/locale-path.ts';
+import { type Locale, locales } from '../lib/i18n/locales.ts';
+import { ui } from '../lib/i18n/ui.ts';
+
+interface Props {
+  locale: Locale;
+  pathname: string;
+}
+
+const { locale, pathname } = Astro.props;
+
+const labelFor: Record<Locale, string> = {
+  'pt-BR': ui.switchToPortuguese[locale],
+  en: ui.switchToEnglish[locale],
+};
+---
+
+<nav class="lang" aria-label={ui.languageLabel[locale]}>
+  <ul class="lang__list">
+    {
+      locales.map((option) => (
+        <li>
+          <a
+            class="lang__link"
+            href={localePath(pathname, option)}
+            hreflang={option}
+            lang={option}
+            data-locale={option}
+            aria-current={option === locale ? 'true' : undefined}
+          >
+            {labelFor[option]}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<script>
+  import { bindLanguageLinks } from '../scripts/language/remember-choice.ts';
+
+  bindLanguageLinks(document, localStorage);
+</script>
+
+<style>
+  .lang__list {
+    display: flex;
+    gap: var(--space-1);
+    padding: 0;
+    list-style: none;
+  }
+
+  .lang__link {
+    display: inline-block;
+    /* 24px de alvo de toque, mínimo da WCAG 2.2. */
+    min-height: 1.5rem;
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-ink-soft);
+    text-decoration: none;
+    border: 1px solid var(--color-line-strong);
+  }
+
+  /* O idioma atual não é só cor: tem fundo sólido e peso, para quem não
+     distingue as cores continuar sabendo onde está. */
+  .lang__link[aria-current='true'] {
+    font-weight: 500;
+    color: var(--color-paper);
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+
+  .lang__link:not([aria-current='true']):hover {
+    color: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+</style>

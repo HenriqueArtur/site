@@ -651,7 +651,19 @@ tradução literal.
 
    Ordem final: 01 Sobre · 02 Impacto · 03 Construído · 04 Stack · 05 Open source ·
    06 Trajetória · 07 Formação · 08 Contato.
-4. **i18n** — inglês completo, detecção, seletor, `hreflang`.
+4. ✅ **i18n** — inglês completo, detecção pelo navegador, seletor e `hreflang`.
+
+   A detecção roda **inline e bloqueante no `<head>`**, de propósito: um script
+   diferido redirecionaria depois da primeira pintura e o visitante veria a página
+   piscar do português para o inglês.
+
+   Para não haver duas cópias da regra, a função `redirectTarget` é serializada com
+   `toString()` e injetada — o que roda no navegador é literalmente o código coberto
+   pelos testes. O risco dessa técnica é alguém adicionar um `import` na função: ela
+   continuaria passando em todos os testes e quebraria no navegador com "X is not
+   defined", só para o visitante. Por isso existe um teste que **reconstrói a função a
+   partir do próprio texto**, num escopo sem acesso ao módulo, e confirma que ela
+   responde igual em todos os casos.
 5. **Blog** — coleção, rotas por data, índice agrupado, post, RSS, sitemap, um post de
    exemplo em ambos os idiomas.
 6. **3D** — fallback SVG primeiro, three.js como camada por cima, com o modelo escolhido.
