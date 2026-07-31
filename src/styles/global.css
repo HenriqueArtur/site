@@ -53,29 +53,64 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--color-ink);
-  background-color: var(--color-paper);
 
-  /* Grade de planta técnica, sem imagem: dois gradientes sobrepostos.
-     A grade fina é quase invisível; a grossa marca o módulo de 64px. */
+  /* O fundo da página é liso. A textura é decisão de cada seção — ver
+     .surface-* abaixo e src/lib/design/section-surfaces.ts. Grade cobrindo
+     tudo vira ruído constante em vez de referência. */
+  background-color: var(--color-paper);
+}
+
+/* ---------- superfícies ---------- */
+
+.surface {
+  position: relative;
+}
+
+/* Papel milimetrado: grade fina com um traço mais forte a cada cinco. */
+.surface--grid {
+  background-color: var(--color-paper);
   background-image:
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--color-line-soft) 55%, transparent) 1px,
+      color-mix(in srgb, var(--color-line-soft) 60%, transparent) 1px,
       transparent 1px
     ),
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--color-line-soft) 55%, transparent) 1px,
+      color-mix(in srgb, var(--color-line-soft) 60%, transparent) 1px,
       transparent 1px
     ),
-    linear-gradient(to bottom, var(--color-line-soft) 1px, transparent 1px),
-    linear-gradient(to right, var(--color-line-soft) 1px, transparent 1px);
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px),
+    linear-gradient(to right, var(--color-line) 1px, transparent 1px);
   background-size:
     var(--layout-grid-unit) var(--layout-grid-unit),
     var(--layout-grid-unit) var(--layout-grid-unit),
     var(--layout-grid-major) var(--layout-grid-major),
     var(--layout-grid-major) var(--layout-grid-major);
-  background-attachment: fixed;
+}
+
+/* Pontilhado: mesma ideia de referência, metade do peso visual. */
+.surface--dots {
+  background-color: var(--color-paper-deep);
+  background-image: radial-gradient(circle, var(--color-line) 1px, transparent 1px);
+  background-size: var(--layout-dot-spacing) var(--layout-dot-spacing);
+}
+
+.surface--plain {
+  background-color: var(--color-paper);
+}
+
+.surface--inverted {
+  color: var(--color-paper);
+  background-color: var(--color-ink);
+}
+
+.surface--inverted a {
+  color: var(--color-paper);
+}
+
+.surface--inverted .label {
+  color: var(--color-line);
 }
 
 /* ---------- tipografia ---------- */
@@ -173,7 +208,111 @@ a:hover {
   background-color: var(--color-accent-deep);
 }
 
+/* ---------- desalinhamento intencional ---------- */
+
+/*
+ * Nada aqui passa de 1 grau. O efeito é "colado à mão na folha", não "torto":
+ * acima disso o olho lê como defeito, e texto inclinado cansa de verdade.
+ * Por isso a inclinação fica em cartão e rótulo, nunca em parágrafo.
+ */
+.tilt {
+  transform: rotate(var(--tilt, 0deg));
+}
+
+.tilt-list > * {
+  transform: rotate(var(--tilt, 0deg));
+}
+
+.tilt-list > *:nth-child(4n + 1) {
+  --tilt: -0.4deg;
+}
+
+.tilt-list > *:nth-child(4n + 2) {
+  --tilt: 0.3deg;
+}
+
+.tilt-list > *:nth-child(4n + 3) {
+  --tilt: -0.2deg;
+}
+
+.tilt-list > *:nth-child(4n + 4) {
+  --tilt: 0.45deg;
+}
+
+/* Anotação de margem, como um lembrete escrito a lápis ao lado do texto. */
+.margin-note {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-ink-soft);
+  transform: rotate(-1.2deg);
+}
+
+/* Traço à mão livre sob o título. O caminho é irregular de propósito. */
+.sketch-rule {
+  display: block;
+  width: min(14rem, 60%);
+  height: 0.5rem;
+  overflow: visible;
+  color: var(--color-accent);
+}
+
+.sketch-rule path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
 /* ---------- movimento ---------- */
+
+/*
+ * Animação de entrada dirigida pelo scroll, sem uma linha de JavaScript.
+ *
+ * `animation-timeline: view()` ainda não é universal, e é por isso que o estado
+ * inicial escondido vive DENTRO do @supports: onde a propriedade não existe, o
+ * conteúdo simplesmente já está visível. O contrário — esconder por padrão e
+ * revelar por script — deixaria a página em branco para quem não executa JS.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+
+    .draw {
+      animation: draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    /* A inclinação entra na conta: sem ela, o transform da animação apagaria
+       o tilt do elemento no meio do caminho. */
+    transform: translateY(1.25rem) rotate(var(--tilt, 0deg));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 320;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html {

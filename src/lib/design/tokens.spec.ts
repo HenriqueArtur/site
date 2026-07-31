@@ -60,6 +60,34 @@ describe('contraste de elementos de interface', () => {
   });
 });
 
+// A superfície invertida (seção de open source) troca papel por tinta, e com
+// isso todo par de cor muda. É onde uma paleta pensada só para fundo claro
+// falha em silêncio.
+describe('contraste da superfície invertida', () => {
+  const sobreTinta = [
+    ['paper', color.paper],
+    ['line', color.line],
+    ['lineSoft', color.lineSoft],
+    ['accentOnDark', color.accentOnDark],
+  ] as const;
+
+  for (const [nome, cor] of sobreTinta) {
+    it(`${nome} sobre ink atinge 4.5:1`, () => {
+      expect(contrastRatio(cor, color.ink)).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
+  it('accent comum NÃO serve sobre ink, e é por isso que accentOnDark existe', () => {
+    // Se um dia o accent passar aqui, os dois tokens viraram redundantes e a
+    // decisão precisa ser revista.
+    expect(contrastRatio(color.accent, color.ink)).toBeLessThan(4.5);
+  });
+
+  it('accentOnDark NÃO serve sobre papel, e por isso fica restrito ao invertido', () => {
+    expect(contrastRatio(color.accentOnDark, color.paper)).toBeLessThan(4.5);
+  });
+});
+
 describe('accent como cor de texto', () => {
   it('accent NÃO atinge 4.5:1, e por isso accentDeep existe', () => {
     // Este teste documenta a razão de haver dois laranjas. Se um dia o accent

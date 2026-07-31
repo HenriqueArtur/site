@@ -59,6 +59,25 @@ export const ui = {
   educationLabel: { 'pt-BR': 'Formação', en: 'Education' },
   educationTitle: { 'pt-BR': 'Onde eu estudei', en: 'Where I studied' },
 
+  // Anotações de margem. Curtas de propósito: são lembretes a lápis ao lado do
+  // título, não subtítulos.
+  noteImpact: {
+    'pt-BR': 'resultado antes de responsabilidade',
+    en: 'outcome before responsibility',
+  },
+  noteProjects: {
+    'pt-BR': 'sistemas, não empregadores',
+    en: 'systems, not employers',
+  },
+  noteStack: {
+    'pt-BR': 'o que uso hoje, separado do que já usei',
+    en: 'what I use today, kept apart from what I used to',
+  },
+  noteTimeline: {
+    'pt-BR': 'a cronologia, para quem procura por ela',
+    en: 'the chronology, for those who look for it',
+  },
+
   blogLabel: { 'pt-BR': 'Blog', en: 'Blog' },
   blogTitle: { 'pt-BR': 'Blog', en: 'Blog' },
   blogDescription: {

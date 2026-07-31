@@ -136,11 +136,51 @@ Duas descobertas da fase 2 que mudaram a paleta original:
 O laranja **nunca** é o único portador de informação — sempre acompanhado de forma,
 posição, sublinhado ou rótulo.
 
-### 3.2 Formas
+### 3.2 Superfícies — a grade é ritmo, não papel de parede
+
+A primeira versão colocava a grade no `body` inteiro. Cansa a vista: vira ruído
+constante em vez de referência, e depois de dois parágrafos o olho para de vê-la como
+papel e passa a vê-la como sujeira.
+
+Agora o fundo da página é liso e **cada seção escolhe sua textura**, definida em
+`src/lib/design/section-surfaces.ts`:
+
+| Superfície | Onde | Por quê |
+|---|---|---|
+| `grid` | Impacto, Trajetória, hero | Papel milimetrado é o lugar de anotar medida e cronologia |
+| `dots` | Projetos, Contato | Mesma ideia de referência, metade do peso visual |
+| `plain` | Sobre, Stack, Formação | Texto corrido não compete com trama |
+| `inverted` | Open source | Único bloco escuro da página — acento repetido não acentua |
+
+Duas regras viraram teste, para não se perderem na próxima edição: **nenhuma seção
+vizinha repete a textura**, e **as seções de leitura longa são lisas**.
+
+A grade também cresceu: era 8px/64px, agora é **20px/100px** — o quadradinho de 5mm em
+tela. A 8px ela não lê como papel, lê como cinza.
+
+**Consequência de acessibilidade que quase passou:** a superfície invertida troca papel
+por tinta, e com isso todo par de cor muda. O `--accent` atinge só **4.11:1** sobre
+tinta e reprovaria como texto lá. Daí nasceu `--accent-on-dark`, com dois testes
+fixando a razão de haver dois: um afirma que o accent comum *não* serve sobre tinta,
+outro que o novo *não* serve sobre papel.
+
+### 3.3 Formas e mão livre
 
 - `border-radius: 0` como padrão global. Exceções pontuais no máximo em 2px.
 - Bordas de 1px em `--line`, no espírito de linha de cota de desenho técnico.
-- Grid de fundo sutil (linhas a cada 8px/64px) via CSS gradients, sem imagem.
+- **Desalinhamento intencional.** Cartões e itens de lista saem do prumo por até 0,45°,
+  variando por posição; o número da seção, por 3°. Nada passa de 1° em elemento com
+  texto longo — acima disso o olho lê como defeito, e texto inclinado cansa. Por isso a
+  inclinação fica em cartão e rótulo, nunca em parágrafo.
+- **Traço à mão sob cada título**, em SVG com caminho irregular, que se desenha sozinho
+  conforme a seção entra na tela.
+- **Anotação de margem** em monoespaçado inclinado, como lembrete a lápis ao lado do
+  título: "resultado antes de responsabilidade", "sistemas, não empregadores".
+- **Animação de entrada dirigida pelo scroll, sem uma linha de JavaScript**, via
+  `animation-timeline: view()`. O estado inicial escondido vive dentro do
+  `@supports`: onde a propriedade não existe, o conteúdo já está visível. O contrário
+  — esconder por padrão e revelar por script — deixaria a página em branco para quem
+  não executa JS. Tudo dentro de `prefers-reduced-motion: no-preference`.
 - Elementos de planta baixa: réguas, marcas de canto, números de seção em monoespaçado
   (`01 —`, `02 —`), rótulos em caixa alta com letter-spacing.
 - Sombras: nenhuma, ou deslocamento sólido sem blur (estilo carimbo).

@@ -24,8 +24,16 @@ export const tokens = {
     inkSoft: '#5B5145',
     /** Laranja de destaque. Para borda, ícone e preenchimento — não para texto. */
     accent: '#E2571E',
-    /** Laranja escuro. Para texto e link, onde 4.5:1 é obrigatório. */
+    /** Laranja escuro. Para texto e link sobre papel, onde 4.5:1 é obrigatório. */
     accentDeep: '#A93C10',
+    /**
+     * Laranja claro, exclusivo da superfície invertida.
+     *
+     * O `accent` atinge só 4.11:1 sobre `ink` e reprova como texto lá — a
+     * mesma cor que serve de acento no claro não serve no escuro. Este token
+     * existe por causa disso, e não por gosto.
+     */
+    accentOnDark: '#EE6A2B',
   },
 
   font: {
@@ -77,8 +85,16 @@ export const tokens = {
     measure: '68ch',
     /** Largura máxima do conteúdo. */
     maxWidth: '72rem',
-    /** Módulo da grade de fundo. */
-    gridUnit: '8px',
-    gridMajor: '64px',
+    /**
+     * Módulo da grade de fundo.
+     *
+     * 20px é o quadradinho de papel milimetrado de 5mm em tela — grande o
+     * bastante para ser lido como papel, e não como textura. A primeira versão
+     * usava 8px, que a essa distância vira ruído cinza.
+     */
+    gridUnit: '20px',
+    gridMajor: '100px',
+    /** Espaçamento do pontilhado, a alternativa mais leve à grade. */
+    dotSpacing: '26px',
   },
 } as const;
