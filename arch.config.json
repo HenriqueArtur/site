@@ -11,7 +11,7 @@
           "id": "lib-allowed-folders",
           "level": "error",
           "roots": "src/lib",
-          "allowed_subfolders": ["posts", "i18n", "routes", "seo", "content"]
+          "allowed_subfolders": ["posts", "i18n", "routes", "seo", "content", "design"]
         },
         {
           "type": "spec-pair",
@@ -29,7 +29,7 @@
           "roots": "src/lib/*",
           "file_pattern": "^(?<name>[a-z0-9]+(?:-[a-z0-9]+)*)\\.ts$",
           "must_export": {
-            "kind": ["function", "arrow"],
+            "kind": ["function", "arrow", "const"],
             "name": "{{camel(name)}}"
           }
         }

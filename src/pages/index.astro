@@ -1,34 +1,57 @@
 ---
-// Página provisória da fase 1. O conteúdo real chega na fase 3.
+import Base from '../layouts/Base.astro';
+
+// Página de verificação do design system (fase 2). O conteúdo real chega na fase 3.
 const title = 'Henrique Artur';
+const description = 'Site pessoal de Henrique Artur, Tech Lead.';
 ---
 
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content="Site pessoal de Henrique Artur, Tech Lead." />
-    <link rel="canonical" href="https://henriqueartur.com/" />
-  </head>
-  <body>
-    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
-    <main id="conteudo">
-      <h1>{title}</h1>
-      <p>Em construção.</p>
-    </main>
-  </body>
-</html>
+<Base title={title} description={description}>
+  <main id="conteudo" class="shell">
+    <p class="label">01 — Fundação</p>
+    <h1>Henrique Artur</h1>
+
+    <div class="prose">
+      <p>
+        Esta página existe para verificar o design system: paleta, tipografia, grade de
+        blueprint e foco. O conteúdo profissional chega na fase 3.
+      </p>
+
+      <h2>Hierarquia</h2>
+      <p>
+        Títulos em Zilla Slab, corpo em Source Serif 4, rótulos e anotações em IBM Plex
+        Mono. Nada arredondado, e o laranja aparece só como <a href="#conteudo">destaque</a>
+        e foco.
+      </p>
+
+      <h3>Contraste</h3>
+      <p>
+        Todos os pares de cor são verificados por teste automatizado contra WCAG 2.2 AA. Uma
+        cor que baixe o contraste abaixo do mínimo quebra o build.
+      </p>
+    </div>
+  </main>
+</Base>
 
 <style>
-  .skip-link {
-    position: absolute;
-    left: -9999px;
+  .shell {
+    max-width: var(--layout-max-width);
+    padding: var(--space-8) var(--space-3);
+    margin-inline: auto;
   }
 
-  .skip-link:focus {
-    left: 0;
-    top: 0;
+  .label {
+    margin-block-end: var(--space-1);
+  }
+
+  h1 {
+    padding-block-end: var(--space-2);
+    border-block-end: 1px solid var(--color-line-strong);
+    margin-block-end: var(--space-4);
+  }
+
+  h2,
+  h3 {
+    margin-block-start: var(--space-4);
   }
 </style>

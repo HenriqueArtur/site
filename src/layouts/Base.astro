@@ -1,0 +1,47 @@
+---
+import { cssVariables } from '../lib/design/css-variables.ts';
+import { tokens } from '../lib/design/tokens.ts';
+import '../styles/fonts.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  lang?: string;
+  canonical?: string;
+}
+
+const { title, description, lang = 'pt-BR', canonical } = Astro.props;
+
+// As custom properties saem dos mesmos tokens que os testes de contraste leem.
+const variables = cssVariables(tokens);
+
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- A fonte de corpo é a única no caminho crítico de leitura. -->
+    <link
+      rel="preload"
+      href="/fonts/source-serif-4-400-600-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <style set:html={`:root {\n${variables}}`}></style>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <slot />
+  </body>
+</html>

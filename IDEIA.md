@@ -101,23 +101,37 @@ Conceito: **planta técnica em papel envelhecido**. Blueprint, mas claro — lin
 sobre papel creme, anotações em monoespaçado, e laranja forte como única cor de
 destaque. Nada arredondado. **Sem modo escuro** (decidido).
 
-### 3.1 Paleta (valores iniciais, a validar em contraste)
+### 3.1 Paleta — implementada e verificada
 
-```
---paper        #F7F4ED   fundo principal, off-white quente
---paper-deep   #EDE6D8   blocos alternados, cartões
---line         #C4B9A4   linhas do blueprint, bordas, réguas
---line-soft    #DED5C2   grid de fundo
---ink          #2A241C   texto principal, marrom quase preto
---ink-soft     #5B5145   texto secundário, legendas
---accent       #E2571E   laranja forte: links, foco, marcadores
---accent-deep  #A93C10   hover, texto laranja sobre claro (contraste)
-```
+Fonte única de verdade em `src/lib/design/tokens.ts`. As custom properties do CSS são
+**geradas** a partir desse objeto (`css-variables.ts`), então não existe uma segunda
+cópia da paleta num `.css` para sair de sincronia.
 
-Toda combinação texto/fundo é verificada contra WCAG AA (4.5:1 em texto normal, 3:1 em
-texto grande e em componentes de interface) antes de entrar. Se `--accent` não passar
-como cor de texto, fica restrito a bordas, ícones e preenchimentos, com `--accent-deep`
-assumindo o texto.
+| Token | Valor | Papel | Contraste medido |
+|---|---|---|---|
+| `paper` | `#F7F4ED` | fundo principal | — |
+| `paperDeep` | `#EDE6D8` | blocos alternados | — |
+| `ink` | `#2A241C` | texto principal | **13.98** sobre paper |
+| `inkSoft` | `#5B5145` | texto secundário | **7.06** sobre paper |
+| `accentDeep` | `#A93C10` | link e texto laranja | **5.72** sobre paper |
+| `accent` | `#E2571E` | borda, ícone, foco | **3.40** sobre paper |
+| `lineStrong` | `#8F8166` | borda que delimita conteúdo | **3.48** sobre paper |
+| `line` | `#C4B9A4` | grade do blueprint | 1.77 — decorativa |
+| `lineSoft` | `#DED5C2` | grade fina | — decorativa |
+
+**O contraste é verificado por teste automatizado, não por inspeção visual.**
+`tokens.spec.ts` calcula a razão WCAG de cada par relevante e falha o build se algum
+cair abaixo do mínimo (4.5:1 texto, 3:1 interface). Mudar uma cor e quebrar
+acessibilidade fica impossível de passar despercebido.
+
+Duas descobertas da fase 2 que mudaram a paleta original:
+
+- **`line` reprovou em 3:1** (1.77). Correto: ele é a grade do blueprint, decoração pura.
+  Mas faltava um token para bordas que *carregam significado* — daí nasceu o
+  `lineStrong`, escolhido por busca até passar 3:1 nos dois fundos.
+- **`accent` reprova como texto** (3.40 < 4.5), e há um teste que **afirma** isso. É o
+  que justifica a existência do `accentDeep`. Se um dia o accent passar em 4.5, o teste
+  falha e avisa que o par virou redundante.
 
 O laranja **nunca** é o único portador de informação — sempre acompanhado de forma,
 posição, sublinhado ou rótulo.
@@ -147,6 +161,30 @@ que não quebra o layout.
 
 Vintage por vocabulário industrial, não por imitação. É a que envelhece melhor e a que
 sustenta um blog com texto longo.
+
+**Implementada.** `tools/fetch-fonts.mjs` baixa as fontes e gera `src/styles/fonts.css`
+apontando para arquivos locais — o script é versionado para o processo ser reproduzível.
+Só os subsets `latin` e `latin-ext`; cirílico, grego e vietnamita ficam de fora.
+
+| Família | Pesos | Arquivos |
+|---|---|---|
+| Zilla Slab | 400, 700 | 4 |
+| Source Serif 4 | 400–600 (variável) | 2 |
+| IBM Plex Mono | 400 | 2 |
+
+**332 KB no disco; ~192 KB é o que um visitante em português realmente baixa** (o
+`latin-ext` só entra se a página usar caracteres dele). A fonte de corpo tem `preload`, e
+`font-display: swap` faz o texto aparecer de imediato na fonte de sistema. Licenças em
+`public/fonts/LICENSE.md`, como a OFL exige.
+
+Armadilha encontrada e corrigida: pedir os pesos 400 e 600 de Source Serif 4 como
+instâncias nomeadas fazia o Google devolver **o mesmo arquivo duas vezes** — é fonte
+variável, e os md5 batiam. Pedindo a faixa `400..600`, vem um arquivo só. Foram 218 KB
+que teriam entrado no repositório sem ninguém notar.
+
+Otimização futura possível: subsetting por glifos realmente usados cortaria os 119 KB do
+Source Serif para algo perto de 40 KB, mas exige `fonttools` como dependência de build.
+Não vale antes de o conteúdo existir.
 
 **B — "Ateliê" — não escolhida**
 
@@ -692,3 +730,8 @@ Registro do que foi perguntado e como ficou, para não se repetir a discussão:
 | 30/07/2026 | `any` proibido no Biome (erro) | Pedido seu |
 | 30/07/2026 | Restrição do `three` fica no Biome | archwarden v0 não expressa proibição de pacote; issue #14 aberta |
 | 30/07/2026 | Telemetria do Astro desligada | Coerência com "sem rastreamento" |
+| 30/07/2026 | Tokens de design em TS, CSS gerado a partir deles | Elimina a chance de a paleta testada divergir da paleta renderizada |
+| 30/07/2026 | Contraste WCAG verificado por teste, não por inspeção | Acessibilidade vira gate de build em vez de boa intenção |
+| 30/07/2026 | Token `lineStrong` criado | `line` reprovou em 3:1; faltava uma borda que carrega significado |
+| 30/07/2026 | Fontes: Zilla 400/700, Source Serif variável, Plex Mono 400 | Menos pesos, menos arquivos na rede |
+| 30/07/2026 | `.astro`: `noUnusedVariables` e `noUnusedImports` desligados | Biome não lê o template, então acusa falso positivo em tudo que é usado só na marcação |
