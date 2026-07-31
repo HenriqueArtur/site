@@ -640,11 +640,17 @@ tradução literal.
 
 ## 11. Fases
 
-1. **Fundação** — repo, Astro, Biome, TypeScript, Vitest, archwarden, CI, deploy de uma
-   página vazia no domínio. Termina com pipeline verde e DNS funcionando.
-2. **Design system** — tokens, tipografia "Prancheta" auto-hospedada, grid blueprint,
-   primitivos, checagem de contraste.
-3. **Home** — seções 01 a 10 em pt-BR, mobile first.
+1. ✅ **Fundação** — repo, Astro, Biome, TypeScript, Vitest, archwarden, husky, CI.
+2. ✅ **Design system** — tokens em TS com CSS gerado, contraste como teste, tipografia
+   "Prancheta" auto-hospedada, grade de blueprint.
+3. ✅ **Home** — conteúdo profissional completo, mobile first, **zero JavaScript**.
+   Entregue com 8 seções em vez das 10 planejadas: o hero absorveu a abertura e o
+   contato virou seção própria no fim. Todo o conteúdo já está escrito **nos dois
+   idiomas** — antecipar isso evitou reescrever a camada de conteúdo na fase 4, que
+   agora fica reduzida a roteamento, detecção e seletor.
+
+   Ordem final: 01 Sobre · 02 Impacto · 03 Construído · 04 Stack · 05 Open source ·
+   06 Trajetória · 07 Formação · 08 Contato.
 4. **i18n** — inglês completo, detecção, seletor, `hreflang`.
 5. **Blog** — coleção, rotas por data, índice agrupado, post, RSS, sitemap, um post de
    exemplo em ambos os idiomas.

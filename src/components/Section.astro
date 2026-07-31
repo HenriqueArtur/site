@@ -1,0 +1,57 @@
+---
+interface Props {
+  id: string;
+  /** Numeração de planta técnica: "01", "02"... */
+  number: string;
+  label: string;
+  title: string;
+}
+
+const { id, number, label, title } = Astro.props;
+---
+
+<section id={id} class="section" aria-labelledby={`${id}-title`}>
+  <p class="label section__label">
+    <span class="section__number">{number}</span>
+    <span class="section__rule" aria-hidden="true"></span>
+    {label}
+  </p>
+  <h2 id={`${id}-title`} class="section__title">{title}</h2>
+  <slot />
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-6);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  .section__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-block-end: var(--space-2);
+  }
+
+  .section__number {
+    color: var(--color-accent-deep);
+    font-weight: 500;
+  }
+
+  /* Traço de cota, entre o número e o rótulo. */
+  .section__rule {
+    flex: 0 0 var(--space-3);
+    height: 1px;
+    background-color: var(--color-line-strong);
+  }
+
+  .section__title {
+    margin-block-end: var(--space-3);
+  }
+
+  @media (min-width: 48rem) {
+    .section {
+      padding-block: var(--space-8);
+    }
+  }
+</style>
