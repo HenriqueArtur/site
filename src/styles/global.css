@@ -277,20 +277,89 @@ a:hover {
  * conteúdo simplesmente já está visível. O contrário — esconder por padrão e
  * revelar por script — deixaria a página em branco para quem não executa JS.
  */
+/*
+ * ATENÇÃO: as propriedades de animação abaixo são escritas UMA A UMA, e não com
+ * o shorthand `animation`. Isso não é verbosidade — é o que faz funcionar.
+ *
+ * `animation-timeline` foi removido do shorthand `animation` na especificação.
+ * O Chrome ainda aceita por legado, o Firefox rejeita. E o minificador, ao ver
+ * `animation: x linear both` seguido de `animation-timeline: view()`, funde os
+ * dois em `animation: linear both x view()` — que o Firefox descarta inteiro,
+ * deixando o site sem animação nenhuma e sem erro no console.
+ *
+ * Escrevendo em longhand, o minificador não tem shorthand onde fundir.
+ */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .reveal {
-      animation: reveal linear both;
+      animation-name: reveal;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: view();
       animation-range: entry 0% entry 60%;
     }
 
     .draw {
-      animation: draw linear both;
+      animation-name: draw;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: view();
       animation-range: entry 10% entry 70%;
     }
   }
+}
+
+/*
+ * Fallback para navegadores sem `animation-timeline: view()` — hoje, Firefox.
+ *
+ * A classe `js-motion` é posta no <html> por um script inline no <head>, e só
+ * quando o CSS não pode fazer o trabalho sozinho. É o que garante que sem
+ * JavaScript nada disto se aplique: o conteúdo fica visível, como deve.
+ */
+.js-motion .reveal {
+  opacity: 0;
+  transform: translateY(1.25rem) rotate(var(--tilt, 0deg));
+  transition:
+    opacity 520ms ease-out,
+    transform 520ms ease-out;
+}
+
+.js-motion .reveal.is-in {
+  opacity: 1;
+  transform: translateY(0) rotate(var(--tilt, 0deg));
+}
+
+/*
+ * Os cartões de impacto só entram por aqui no desktop. No mobile eles são
+ * dirigidos quadro a quadro pelo JS da pilha (ver `.js-pile` em Home.astro),
+ * e as duas coisas disputariam a mesma propriedade `transform`.
+ */
+@media (min-width: 48rem) {
+  .js-motion .card-enter {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition:
+      opacity 520ms ease-out,
+      transform 520ms ease-out;
+  }
+
+  .js-motion .card-enter.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* O traço sob o título: stroke-dashoffset é herdado, então animá-lo no <svg>
+   chega ao <path> sem precisar de um seletor para ele. */
+.js-motion .draw {
+  stroke-dashoffset: 320;
+  transition: stroke-dashoffset 700ms ease-out;
+}
+
+.js-motion .draw.is-in {
+  stroke-dashoffset: 0;
 }
 
 @keyframes reveal {

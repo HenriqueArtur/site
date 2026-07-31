@@ -43,7 +43,7 @@
           "id": "scripts-allowed-folders",
           "level": "error",
           "roots": "src/scripts",
-          "allowed_subfolders": ["language", "three"]
+          "allowed_subfolders": ["language", "three", "motion"]
         },
         {
           "type": "spec-pair",

@@ -92,12 +92,13 @@ const others = openSource.filter((repo) => !repo.featured);
         <ul class="cards cards--scattered">
           {
             impact.map((item) => (
-              <li class="reveal">
+              <li class="card-enter">
                 {/*
                   O cartão é um elemento interno de propósito: a revelação por
-                  scroll vive no <li> e o balanço do hover no <article>. Na mesma
-                  caixa, a propriedade `animation` de um sobrescreveria a do
-                  outro, e passar o mouse durante a entrada cortaria a entrada.
+                  scroll anima o transform do <li>, e o hover transiciona o
+                  transform do <article>. Na mesma caixa os dois disputariam a
+                  mesma propriedade, e passar o mouse durante a entrada cortaria
+                  a entrada pela metade.
                 */}
                 <article class="card card--impact">
                   {item.metric && <p class="card__metric">{item.metric[locale]}</p>}
@@ -118,18 +119,44 @@ const others = openSource.filter((repo) => !repo.featured);
         label={ui.projectsLabel[locale]}
         title={ui.projectsTitle[locale]}
       >
-        <ul class="cards tilt-list">
+        <ul class="cards cards--scattered">
           {
             projects.map((project) => (
-              <li class="card reveal">
-                <h3 class="card__title">{project.name[locale]}</h3>
-                <p class="label card__context">{project.context}</p>
-                <p class="card__text">{project.description[locale]}</p>
-                <ul class="tags">
-                  {project.tech.map((tech) => (
-                    <li class="tag">{tech}</li>
-                  ))}
-                </ul>
+              <li class="reveal">
+                <article class="card card--project">
+                  {/*
+                    Círculo de marcador, desenhado no hover. `pathLength="100"`
+                    normaliza o comprimento do traço: sem isso o dasharray teria
+                    que casar com a geometria exata do caminho, e qualquer ajuste
+                    no desenho quebraria a animação sem erro nenhum.
+
+                    A curva da esquerda usa x negativo de propósito: ela sai do
+                    viewBox para abrir mais raio daquele lado. Só funciona porque
+                    o CSS declara `overflow: visible` — com o padrão `hidden` do
+                    SVG, esse trecho seria cortado.
+                  */}
+                  <svg
+                    class="circle-mark"
+                    viewBox="0 0 200 140"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      pathLength="100"
+                      d="M14 21 C56 4, 144 3, 181 21 C199 46, 198 112, 177 130 C127 145, 46 144, 12 124 C-9 98, -8 39, 4 18 C14 9, 40 4, 68 3"
+                    />
+                  </svg>
+
+                  <h3 class="card__title">{project.name[locale]}</h3>
+                  <p class="label card__context">{project.context}</p>
+                  <p class="card__text">{project.description[locale]}</p>
+                  <ul class="tags">
+                    {project.tech.map((tech) => (
+                      <li class="tag">{tech}</li>
+                    ))}
+                  </ul>
+                </article>
               </li>
             ))
           }
@@ -293,6 +320,88 @@ const others = openSource.filter((repo) => !repo.featured);
   </footer>
 </Base>
 
+<script>
+  import { pileProgress, pileState } from '../scripts/motion/pile-state.ts';
+
+  /*
+   * Dirige a pilha dos cartões de impacto.
+   *
+   * A pilha inteira desce um slot por vez e deixa o cartão do topo para trás:
+   *
+   *   [123456] _ _ _ _ _   →   1 [23456] _ _ _ _   →   1 2 [3456] _ _ _
+   *
+   * Roda a cada quadro em vez de ser CSS porque cada cartão percorre um número
+   * diferente de slots sobre uma mesma linha do tempo — o cartão 6 passa por
+   * cinco, o cartão 2 por um. Em CSS isso seria um @keyframes por cartão.
+   *
+   * Só no mobile: no desktop são duas colunas e a pilha não faz sentido.
+   */
+  const list = document.querySelector<HTMLElement>('#impacto .cards--scattered');
+  const cards = list ? [...list.querySelectorAll<HTMLElement>('.card-enter')] : [];
+
+  if (list && cards.length > 0) {
+    const singleColumn = matchMedia('(max-width: 47.99rem)');
+    const stillMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+    // `offsetTop` não muda com a rolagem e transform não altera layout, então a
+    // medida vale mesmo com os cartões já deslocados.
+    let slots = cards.map((card) => card.offsetTop);
+    let scheduled = false;
+
+    // Ordem de pintura da pilha: o primeiro cartão por cima, e fixa. Ela não
+    // muda durante o movimento, então é atribuída uma vez e com inteiro.
+    cards.forEach((card, index) => {
+      card.style.zIndex = String(cards.length - index);
+    });
+
+    const release = () => {
+      list.classList.remove('js-pile');
+      for (const card of cards) {
+        card.style.removeProperty('--stack-offset');
+        card.style.removeProperty('--stack-depth');
+      }
+    };
+
+    const apply = () => {
+      scheduled = false;
+
+      if (!singleColumn.matches || stillMotion.matches) {
+        release();
+        return;
+      }
+
+      list.classList.add('js-pile');
+
+      const progress = pileProgress(list.getBoundingClientRect(), window.innerHeight);
+
+      pileState(progress, slots).forEach((state, index) => {
+        const card = cards[index];
+        if (!card) return;
+        card.style.setProperty('--stack-offset', `${state.offset}px`);
+        card.style.setProperty('--stack-depth', state.depth.toFixed(3));
+      });
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(apply);
+    };
+
+    const remeasure = () => {
+      // Solta a pilha antes de medir: com os cartões deslocados a leitura ainda
+      // seria correta, mas soltar também cobre a virada para o desktop.
+      release();
+      slots = cards.map((card) => card.offsetTop);
+      schedule();
+    };
+
+    apply();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', remeasure, { passive: true });
+  }
+</script>
+
 <style>
   .shell {
     max-width: var(--layout-max-width);
@@ -395,48 +504,57 @@ const others = openSource.filter((repo) => !repo.featured);
   }
 
   /*
+   * A ordem da pilha é definida em JS, não aqui.
+   *
+   * A tentação era `z-index: calc(100 - var(--stack-depth))`, mas --stack-depth
+   * é fracionário e z-index só aceita inteiro. Valor inválido faz o navegador
+   * descartar a declaração, o z-index volta a `auto`, e a pintura cai na ordem
+   * do DOM — a pilha aparece por cima do cartão que já assentou, e o defeito
+   * pisca conforme o número passa por valores inteiros.
+   */
+
+  /*
    * "Jogado" vem principalmente do deslocamento, não da rotação. Inclinar muito
    * um bloco com três linhas de texto cansa a leitura; deslocar não. Por isso a
    * rotação fica em torno de 1,5° e o resto do efeito vem do offset.
    */
   .cards--scattered .card {
     transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+    /* O cubic-bezier passa de 1 no terceiro parâmetro: a curva ultrapassa o
+       destino e volta. É de onde vem a sensação de "mexeu" — sem keyframes, e
+       reversível, então sair com o mouse desfaz pelo mesmo caminho. */
+    transition:
+      transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 300ms ease;
   }
 
-  .cards--scattered > li:nth-child(6n + 1) .card {
-    --tilt: -1.5deg;
-    --shift-x: -0.35rem;
-    --shift-y: 0.3rem;
+  /* Sob o cursor o cartão vai para o prumo e cresce: sai da pilha bagunçada e
+     se apresenta. */
+  .cards--scattered > li:hover .card,
+  .cards--scattered > li:focus-within .card {
+    transform: translate(0, 0) rotate(0deg) scale(1.04);
+    box-shadow: 5px 6px 0 color-mix(in srgb, var(--color-ink) 16%, transparent);
   }
 
-  .cards--scattered > li:nth-child(6n + 2) .card {
-    --tilt: 1.2deg;
-    --shift-x: 0.4rem;
-    --shift-y: -0.25rem;
-  }
-
-  .cards--scattered > li:nth-child(6n + 3) .card {
-    --tilt: 0.6deg;
-    --shift-x: -0.2rem;
-    --shift-y: -0.4rem;
-  }
-
-  .cards--scattered > li:nth-child(6n + 4) .card {
-    --tilt: -0.9deg;
-    --shift-x: 0.25rem;
-    --shift-y: 0.45rem;
-  }
-
-  .cards--scattered > li:nth-child(6n + 5) .card {
-    --tilt: 1.6deg;
-    --shift-x: -0.3rem;
-    --shift-y: -0.15rem;
-  }
-
-  .cards--scattered > li:nth-child(6n + 6) .card {
+  /*
+   * Mobile primeiro, e aqui isso muda o desenho, não só a medida.
+   *
+   * Em coluna única o cartão ocupa a largura toda, então o mesmo ângulo desloca
+   * muito mais os cantos — o que era "jogado na mesa" vira "torto". E qualquer
+   * deslocamento horizontal empurraria o cartão contra a margem do container.
+   *
+   * Por isso aqui a rotação é quase imperceptível e o shift-x é zero. O
+   * espalhamento de verdade começa a partir de 48rem, onde há duas colunas e
+   * sobra folga lateral.
+   */
+  .cards--scattered > li:nth-child(2n + 1) .card {
     --tilt: -0.4deg;
-    --shift-x: 0.15rem;
-    --shift-y: 0.2rem;
+    --shift-y: 0.1rem;
+  }
+
+  .cards--scattered > li:nth-child(2n + 2) .card {
+    --tilt: 0.35deg;
+    --shift-y: -0.1rem;
   }
 
   /* Texto menor: o cartão de impacto é leitura de relance, não de fôlego. */
@@ -453,48 +571,170 @@ const others = openSource.filter((repo) => !repo.featured);
     line-height: 1.55;
   }
 
-  /* O cartão sob o cursor sobe na pilha, senão o vizinho o corta ao balançar. */
-  .cards--scattered > li:hover,
-  .cards--scattered > li:focus-within {
-    z-index: 1;
-  }
+  /* ---------- impacto: desempilhar ao rolar (só no mobile) ---------- */
 
+  /*
+   * No mobile os cartões entram como se estivessem empilhados: cada um chega
+   * de trás e de cima, menor e mais torto, e assenta no lugar conforme rola.
+   *
+   * Isto substitui o `.reveal` genérico em vez de somar a ele — duas regras
+   * `animation` no mesmo elemento não se combinam, a última simplesmente vence.
+   * Por isso o <li> usa `card-enter`, e o que muda no breakpoint é só o
+   * `animation-name`.
+   */
   @media (prefers-reduced-motion: no-preference) {
-    .cards--scattered > li:hover .card,
-    .cards--scattered > li:focus-within .card {
-      animation: card-nudge 620ms ease-in-out;
+    @supports (animation-timeline: view()) {
+      /* Longhand obrigatório — ver o aviso em global.css. */
+      .card-enter {
+        animation-name: settle;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: view();
+        animation-range: entry 5% entry 80%;
+      }
+
     }
   }
 
   /*
-   * O balanço começa e termina na posição de repouso do próprio cartão — por
-   * isso os keyframes leem as mesmas variáveis. Terminar em outro lugar faria o
-   * cartão saltar de volta ao tirar o mouse.
+   * Pilha dirigida por JS. `animation: none` desliga a versão em CSS, que não
+   * consegue expressar este movimento: a pilha desce um slot por vez e cada
+   * cartão passa por vários slots, o que exigiria keyframes diferentes por
+   * cartão sobre uma linha do tempo compartilhada.
    */
-  @keyframes card-nudge {
-    0% {
-      transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+  .js-pile .card-enter {
+    animation: none;
+    opacity: 1;
+    transform: translateY(var(--stack-offset, 0px))
+      translateX(calc(var(--stack-depth, 0) * 4px))
+      scale(calc(1 - var(--stack-depth, 0) * 0.02))
+      rotate(calc(var(--stack-depth, 0) * -1.1deg));
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
     }
 
-    30% {
-      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.5rem))
-        rotate(calc(var(--tilt, 0deg) + 1.6deg));
-    }
-
-    60% {
-      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.2rem))
-        rotate(calc(var(--tilt, 0deg) - 1.1deg));
-    }
-
-    85% {
-      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.05rem))
-        rotate(calc(var(--tilt, 0deg) + 0.4deg));
-    }
-
-    100% {
-      transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
+
+  /* ---------- projetos: círculo de marcador ---------- */
+
+  .card--project {
+    position: relative;
+  }
+
+  /*
+   * O traço fica FORA do cartão, com inset negativo: marcador de quadro circula
+   * em volta do que destaca, não por dentro.
+   *
+   * Largura e altura são explícitas, e não `auto`. O reset global aplica
+   * `height: auto` em svg, e como o elemento tem proporção intrínseca vinda do
+   * viewBox, o auto resolvia para largura ÷ proporção em vez de esticar — que
+   * era a razão de o círculo cobrir só a parte de cima do cartão.
+   */
+  .circle-mark {
+    position: absolute;
+    /* Deslocado à direita de propósito: o início e a cauda do traço ficam do
+       lado esquerdo, então o desenho tem mais massa ali e o centro óptico não
+       coincide com o centro geométrico. A caixa mantém o tamanho — só o ponto
+       de partida horizontal muda, o que translada o círculo inteiro. */
+    inset-block: -1.5rem;
+    inset-inline-start: -0.3rem;
+    width: calc(100% + 3rem);
+    height: calc(100% + 3rem);
+    overflow: visible;
+    pointer-events: none;
+    color: var(--color-accent);
+    /*
+     * Sem isto o traço fica POR BAIXO do cartão seguinte. Ele transborda a
+     * própria caixa, e irmãos posteriores pintam por cima de irmãos anteriores
+     * quando todos têm z-index automático. Um z-index positivo tira o desenho
+     * dessa fila e o coloca numa camada acima de todos eles.
+     */
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 160ms ease-out;
+  }
+
+  /*
+   * SEM `vector-effect: non-scaling-stroke`, e isso é decisão, não esquecimento.
+   *
+   * Ele faz o navegador medir o tracejado no espaço da tela, o que anula o
+   * `pathLength="100"` — o dasharray virava 100px num caminho de várias
+   * centenas, e sobrava traço visível o tempo todo. As duas propriedades são
+   * incompatíveis.
+   *
+   * Tirá-lo tem um efeito colateral desejado: com `preserveAspectRatio="none"`
+   * o viewBox estica para acompanhar o cartão, e a espessura passa a variar
+   * entre os trechos horizontais e verticais. É de onde vem a irregularidade de
+   * pincel, em vez de um traço de compasso.
+   */
+  .circle-mark path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-opacity: 0.72;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 460ms ease-out;
+  }
+
+  /* A segunda passada sai depois e mais fina, como quem reforça o círculo. */
+  .cards--scattered > li:hover .circle-mark,
+  .cards--scattered > li:focus-within .circle-mark {
+    opacity: 1;
+  }
+
+  /*
+   * Onde não há cursor, o círculo é dirigido pela classe `is-centered`, posta
+   * por JS no cartão mais central da tela.
+   *
+   * Poderia ser CSS puro com timeline por scroll, e era assim antes — mas o
+   * traço transborda o cartão e `.card` tem `transform`, que cria contexto de
+   * empilhamento e prende o SVG lá dentro. Nenhum z-index interno escapa disso;
+   * quem precisa subir é o <li>. E subir o <li> exige saber qual está ativo,
+   * o que só a classe dá. Um caminho só, em vez de dois divergindo.
+   */
+  .cards--scattered > li.is-centered {
+    z-index: 3;
+  }
+
+  .cards--scattered > li.is-centered .circle-mark {
+    opacity: 1;
+  }
+
+  .cards--scattered > li.is-centered .circle-mark path {
+    stroke-dashoffset: 0;
+  }
+
+  .cards--scattered > li:hover .circle-mark path,
+  .cards--scattered > li:focus-within .circle-mark path {
+    stroke-dashoffset: 0;
+  }
+
+  /* Nos projetos o cartão só volta ao prumo; quem cresce seria concorrência
+     visual com o traço sendo desenhado em volta. */
+  .cards--scattered > li:hover .card--project,
+  .cards--scattered > li:focus-within .card--project {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  /* O cartão ativo sobe acima dos vizinhos — senão o cartão seguinte corta o
+     balanço do de impacto e o círculo do de projeto. */
+  .cards--scattered > li:hover,
+  .cards--scattered > li:focus-within {
+    z-index: 3;
+  }
+
 
   /* ---------- destaque de open source ---------- */
 
@@ -639,6 +879,42 @@ const others = openSource.filter((repo) => !repo.featured);
   @media (min-width: 48rem) {
     .shell {
       padding-inline: var(--space-4);
+    }
+
+    .cards--scattered > li:nth-child(6n + 1) .card {
+      --tilt: -1.5deg;
+      --shift-x: -0.35rem;
+      --shift-y: 0.3rem;
+    }
+
+    .cards--scattered > li:nth-child(6n + 2) .card {
+      --tilt: 1.2deg;
+      --shift-x: 0.4rem;
+      --shift-y: -0.25rem;
+    }
+
+    .cards--scattered > li:nth-child(6n + 3) .card {
+      --tilt: 0.6deg;
+      --shift-x: -0.2rem;
+      --shift-y: -0.4rem;
+    }
+
+    .cards--scattered > li:nth-child(6n + 4) .card {
+      --tilt: -0.9deg;
+      --shift-x: 0.25rem;
+      --shift-y: 0.45rem;
+    }
+
+    .cards--scattered > li:nth-child(6n + 5) .card {
+      --tilt: 1.6deg;
+      --shift-x: -0.3rem;
+      --shift-y: -0.15rem;
+    }
+
+    .cards--scattered > li:nth-child(6n + 6) .card {
+      --tilt: -0.4deg;
+      --shift-x: 0.15rem;
+      --shift-y: 0.2rem;
     }
 
     .hero {

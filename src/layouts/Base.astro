@@ -6,6 +6,7 @@ import { defaultLocale, type Locale, locales } from '../lib/i18n/locales.ts';
 import { redirectTarget } from '../lib/i18n/redirect-target.ts';
 import { ui } from '../lib/i18n/ui.ts';
 import { LOCALE_KEY } from '../scripts/language/remember-choice.ts';
+import { shouldRunFallback } from '../scripts/motion/scroll-motion.ts';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -27,6 +28,25 @@ const alternates = locales.map((option) => ({
   hreflang: option,
   href: new URL(localePath(pathname, option), Astro.site).href,
 }));
+
+/*
+ * Decisão do fallback de animação, inline e bloqueante pela mesma razão da
+ * detecção de idioma: se a classe entrasse depois da primeira pintura, o
+ * conteúdo apareceria e sumiria na frente do usuário.
+ *
+ * `shouldRunFallback` é serializada com toString() — é a mesma função coberta
+ * pelos testes, e não uma segunda cópia da regra escrita à mão aqui.
+ */
+const motionFallback = `
+(function () {
+  var decide = ${shouldRunFallback.toString()};
+  var run = decide({
+    supportsScrollTimeline: CSS.supports('animation-timeline', 'view()'),
+    reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+  });
+  if (run) document.documentElement.classList.add('js-motion');
+})();
+`.trim();
 
 /*
  * Detecção de idioma.
@@ -94,10 +114,57 @@ const detection = `
 
     <style set:html={`:root {\n${variables}}`}></style>
     <script is:inline set:html={detection} />
+    <script is:inline set:html={motionFallback} />
   </head>
 
   <body>
     <a class="skip-link" href="#conteudo">{ui.skipToContent[locale]}</a>
     <slot />
+
+    <script>
+      import { markCentered, revealInView } from '../scripts/motion/scroll-motion.ts';
+
+      const stillMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Duas responsabilidades independentes, com condições diferentes.
+      //
+      // A revelação é FALLBACK: só entra onde o CSS não sabe fazer sozinho.
+      // A marca de "mais centralizado" é o caminho ÚNICO onde não há cursor —
+      // ela precisa existir mesmo com timeline por scroll disponível, porque
+      // além de desenhar o círculo ela eleva o <li>, e isso o CSS não consegue
+      // fazer sozinho: o `transform` do cartão prende o SVG num contexto de
+      // empilhamento próprio.
+      const revealables = document.documentElement.classList.contains('js-motion')
+        ? [...document.querySelectorAll<HTMLElement>('.reveal, .card-enter, .draw')]
+        : [];
+
+      const markables =
+        !stillMotion && matchMedia('(hover: none)').matches
+          ? [...document.querySelectorAll<HTMLElement>('#projetos .cards--scattered > li')]
+          : [];
+
+      if (revealables.length > 0 || markables.length > 0) {
+        let scheduled = false;
+
+        const update = () => {
+          scheduled = false;
+          if (revealables.length > 0) revealInView(revealables, window.innerHeight);
+          if (markables.length > 0) markCentered(markables, window.innerHeight);
+        };
+
+        // Um frame por rolagem, no máximo: sem isto o handler roda dezenas de
+        // vezes por segundo medindo layout, que é o caminho curto para travar a
+        // rolagem no celular.
+        const schedule = () => {
+          if (scheduled) return;
+          scheduled = true;
+          requestAnimationFrame(update);
+        };
+
+        update();
+        addEventListener('scroll', schedule, { passive: true });
+        addEventListener('resize', schedule, { passive: true });
+      }
+    </script>
   </body>
 </html>
