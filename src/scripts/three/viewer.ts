@@ -10,6 +10,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { animationController } from './animation-controller.ts';
 import { frameModel } from './frame-model.ts';
@@ -55,11 +56,13 @@ export async function mountViewer(options: ViewerOptions): Promise<ViewerHandle>
   fill.position.set(-3, 2, -2);
   scene.add(fill);
 
-  // Sem DRACOLoader de propósito: ele arrastava 817 KB de decoder para o build,
-  // e apontá-lo para um CDN contradiz a decisão de não fazer requisição a
-  // terceiros. Se o modelo passar a ser comprimido, o decoder entra
-  // auto-hospedado, como escolha explícita.
+  // O modelo é comprimido com EXT_meshopt_compression, que reduziu 4,02 MB para
+  // 899 KB. O decoder é empacotado junto com o nosso JS — 28,6 KB, contra os
+  // 817 KB que o DRACOLoader arrastava, e sem depender de CDN de terceiros.
+  // KHR_mesh_quantization, a outra extensão do arquivo, o GLTFLoader já entende
+  // sozinho.
   const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
   const gltf = await loader.loadAsync(modelUrl);
   const model = gltf.scene;
 

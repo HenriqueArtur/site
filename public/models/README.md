@@ -1,35 +1,53 @@
 # Modelo 3D
 
-Falta um arquivo aqui: **`terrarium.glb`**.
-
-O site funciona sem ele — o `<canvas>` simplesmente nunca aparece e todo mundo continua
-vendo o desenho SVG de fallback, que é a versão correta daquele cenário e não um erro.
-Quando o `.glb` for colocado nesta pasta, ele passa a carregar sozinho.
+`terrarium.glb` — **899 KB**, comprimido a partir de um original de 4,02 MB.
 
 ## De onde vem
 
 [Smol Ame in an upcycled terrarium](https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24),
-de **Seafoam**, sob **CC BY 4.0**. A Sketchfab exige login para baixar, então o download
-é manual.
+de **Seafoam**, sob **CC BY 4.0**. A atribuição exigida pela licença está no rodapé da
+home.
 
-A atribuição exigida pela licença já está no rodapé da home.
+O arquivo original da Sketchfab **não** fica versionado — só o resultado comprimido. Para
+refazer o caminho, baixe o original (a Sketchfab exige login) e rode:
 
-## Orçamento
+```bash
+node tools/compress-model.mjs caminho/do/original.glb
+```
 
-**Abaixo de 1,5 MB.** O original tem 53,5k triângulos e o site inteiro hoje tem 32 KB de
-HTML — este arquivo será, com folga, o maior ativo da página.
+## O que a compressão fez
 
-Se o arquivo baixado passar disso, reduzir antes de commitar:
+O peso estava na **geometria**, não nas texturas — o que é contraintuitivo e muda o que
+adianta otimizar:
 
-- redimensionar texturas (1024px costuma bastar para um objeto deste tamanho na tela);
-- decimar a malha, que a essa distância não precisa de 53,5k triângulos;
-- exportar como `.glb` binário, não `.gltf` com arquivos soltos.
+| | original | comprimido |
+|---|---|---|
+| arquivo | 4,02 MB | **899 KB** (547 KB com gzip) |
+| texturas | 0,03 MB | 0,03 MB |
+| geometria | 3,77 MB | comprimida |
+| triângulos | 53.433 | 53.433 |
+| animações / canais | 1 / 74 | 1 / 74 |
+| nós com skin | 19 | 19 |
 
-## Compressão Draco
+Nada de conteúdo foi perdido: mesma malha, mesma animação, mesmo skinning. O ganho vem
+de `KHR_mesh_quantization` (guardar posições em inteiros em vez de float32) e
+`EXT_meshopt_compression`.
 
-O carregador **não** tem suporte a Draco hoje, de propósito: o `DRACOLoader` arrastava
-817 KB de decoder para o build, e apontá-lo para um CDN contradiria a decisão de o site
-não fazer nenhuma requisição a terceiros.
+## O que isso exige do cliente
 
-Se o modelo vier comprimido com Draco, o decoder precisa ser auto-hospedado e o
-`viewer.ts` ajustado — decisão consciente, não acidente de configuração.
+O `EXT_meshopt_compression` precisa de um decoder, que vem do próprio pacote `three` e é
+empacotado com o nosso JS: **28,6 KB**.
+
+Para comparação, foi por isso que o Draco ficou de fora — o decoder dele são **817 KB**,
+e a alternativa de buscá-lo num CDN contradiz a decisão de o site não fazer requisição a
+terceiros.
+
+`KHR_mesh_quantization`, a outra extensão do arquivo, o `GLTFLoader` entende sem código
+extra.
+
+## Se trocar de modelo
+
+Rode o script acima e **confira antes de commitar**: contagem de triângulos, número de
+animações e nós com skin precisam sobreviver intactos. A etapa de `prune` do
+`gltf-transform` remove recursos que julga não usados, e um julgamento errado ali
+aparece como uma animação que simplesmente não toca.
