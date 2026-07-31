@@ -24,8 +24,8 @@ export const impact: Achievement[] = [
     },
     description: {
       'pt-BR':
-        'Liderei a unificação de projetos espalhados por Vercel, Render, DigitalOcean e AWS em um único ambiente no Google Cloud. Mais de 60% de redução de custo e, tão importante quanto, mais autonomia para os times.',
-      en: 'Led the consolidation of projects scattered across Vercel, Render, DigitalOcean, and AWS into a single Google Cloud environment. Over 60% cost reduction and — just as important — more autonomy for the teams.',
+        'Projetos espalhados por Vercel, Render, DigitalOcean e AWS, unificados no Google Cloud — com mais autonomia para os times.',
+      en: 'Projects scattered across Vercel, Render, DigitalOcean, and AWS, consolidated into Google Cloud — with more autonomy for the teams.',
     },
   },
   {
@@ -36,9 +36,8 @@ export const impact: Achievement[] = [
       en: 'Development cycle time',
     },
     description: {
-      'pt-BR':
-        'Reduzido por boas práticas de Jira, CI/CD com GitHub Actions e code review consistente. Não foi uma ferramenta nova: foi tirar espera do meio do caminho.',
-      en: 'Cut through disciplined Jira practices, CI/CD with GitHub Actions, and consistent code review. It was not a new tool — it was removing waiting from the middle of the path.',
+      'pt-BR': 'Jira, CI/CD e code review. Não foi ferramenta nova: foi tirar espera do caminho.',
+      en: 'Jira, CI/CD, and code review. Not a new tool — just waiting removed from the path.',
     },
   },
   {
@@ -49,8 +48,8 @@ export const impact: Achievement[] = [
     },
     description: {
       'pt-BR':
-        'Arquitetura e desenvolvimento de aplicativo mobile e backoffice para atendimento psicológico empresarial, do primeiro commit ao ar, com interlocução direta com a diretoria e a startup parceira.',
-      en: 'Architecture and development of a mobile app and back office for corporate psychological care, from first commit to production, working directly with the board and the partner startup.',
+        'App mobile e backoffice de atendimento psicológico empresarial, do primeiro commit ao ar.',
+      en: 'Mobile app and back office for corporate psychological care, from first commit to production.',
     },
   },
   {
@@ -61,8 +60,8 @@ export const impact: Achievement[] = [
     },
     description: {
       'pt-BR':
-        'Implantação de testes automatizados, monitoramento de qualidade e acompanhamento contínuo, reduzindo erros em produção. Junto, reestruturação de logs e alertas no Papertrail para que um problema fosse visto antes de ser relatado.',
-      en: 'Automated tests, quality monitoring, and continuous follow-up, reducing production errors. Alongside it, a rework of logs and alerts in Papertrail so a problem would be seen before it was reported.',
+        'Testes automatizados e alertas reestruturados no Papertrail: o problema aparece antes de ser relatado.',
+      en: 'Automated tests and reworked Papertrail alerts: the problem shows up before it is reported.',
     },
   },
   {
@@ -73,8 +72,8 @@ export const impact: Achievement[] = [
     },
     description: {
       'pt-BR':
-        'Pair programming, 1:1, workshops e adoção de IA no fluxo de desenvolvimento. Promovi encontros internos de disseminação de conteúdo e treinamento prático com agentes.',
-      en: 'Pair programming, one-on-ones, workshops, and adopting AI in the development workflow. I ran internal knowledge-sharing sessions and hands-on training with agents.',
+        'Pair programming, 1:1, workshops e IA no fluxo do time. Mais encontros internos de conteúdo.',
+      en: 'Pair programming, one-on-ones, workshops, and AI in the team’s workflow. Plus internal knowledge sessions.',
     },
   },
   {
@@ -85,8 +84,8 @@ export const impact: Achievement[] = [
     },
     description: {
       'pt-BR':
-        'Criação e manutenção de componentes React, utilitários e um framework de servidor, documentados o suficiente para que outra pessoa os use sem me perguntar.',
-      en: 'Built and maintained React components, utilities, and a server framework — documented well enough that someone else can use them without asking me.',
+        'Componentes React, utilitários e framework de servidor — documentados para serem usados sem me perguntar.',
+      en: 'React components, utilities, and a server framework — documented well enough to use without asking me.',
     },
   },
 ];

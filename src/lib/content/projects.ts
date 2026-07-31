@@ -31,20 +31,6 @@ export const projects: Project[] = [
     tech: ['Node.js', 'React', 'PostgreSQL', 'Docker', 'AWS', 'GCP'],
   },
   {
-    id: 'crm-hubspot',
-    name: {
-      'pt-BR': 'CRM interno integrado ao HubSpot',
-      en: 'In-house CRM integrated with HubSpot',
-    },
-    context: 'Sunne Energias Renováveis',
-    description: {
-      'pt-BR':
-        'CRM próprio, desenhado em torno do processo comercial real da empresa e sincronizado com o HubSpot em vez de competir com ele.',
-      en: 'A CRM of our own, designed around the company’s actual sales process and synchronised with HubSpot rather than competing with it.',
-    },
-    tech: ['Node.js', 'React', 'PostgreSQL', 'MongoDB'],
-  },
-  {
     id: 'mental-health',
     name: {
       'pt-BR': 'Atendimento psicológico empresarial',
@@ -85,19 +71,5 @@ export const projects: Project[] = [
       en: 'Custom systems for FIEC, SENAI, SESI, and IEL — web applications and APIs, including running the servers behind them.',
     },
     tech: ['Node.js', 'TypeScript', 'Strapi', 'PostgreSQL', 'Docker', 'Linux'],
-  },
-  {
-    id: 'super-gattai',
-    name: {
-      'pt-BR': 'Super Gattai',
-      en: 'Super Gattai',
-    },
-    context: 'The Guardian Dog Studio',
-    description: {
-      'pt-BR':
-        'Jogo eleito Melhor Jogo do Ceará em 2020. Cofundei o estúdio e atuei como produtor executivo — hoje o jogo não está mais disponível para download.',
-      en: 'Voted Best Game in Ceará, 2020. I co-founded the studio and worked as executive producer — the game is no longer available for download.',
-    },
-    tech: ['Unity3D', 'C#'],
   },
 ];
