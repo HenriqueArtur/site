@@ -664,8 +664,29 @@ tradução literal.
    defined", só para o visitante. Por isso existe um teste que **reconstrói a função a
    partir do próprio texto**, num escopo sem acesso ao módulo, e confirma que ela
    responde igual em todos os casos.
-5. **Blog** — coleção, rotas por data, índice agrupado, post, RSS, sitemap, um post de
-   exemplo em ambos os idiomas.
+5. ✅ **Blog** — coleção, rotas por data, índice agrupado por ano › mês, páginas de ano e
+   de mês, RSS por idioma, sitemap, e um post de exemplo nos dois idiomas.
+
+   Rotas geradas: `/blog/`, `/blog/<ano>/`, `/blog/<ano>/<mês>/`,
+   `/<ano>/<mês>/<dia>/<slug>/`, `/rss.xml`, `/sitemap.xml`, e os equivalentes sob
+   `/en`. Um só arquivo de rota atende os dois idiomas, via parâmetro rest `[...lang]`
+   que fica vazio no português.
+
+   **Post sem tradução não vira 404.** A URL traduzida é gerada mesmo assim, com uma
+   página que explica a ausência e leva ao original — 404 trataria como erro do
+   visitante algo que é só conteúdo ainda não traduzido.
+
+   **A data é validada em dois lugares.** Ela existe no caminho do arquivo e no
+   frontmatter, então pode divergir. Divergiu, o build quebra: a URL diria uma data e a
+   página diria outra.
+
+   **Tema de destaque de sintaxe próprio.** Medi os cinco temas claros mais usados do
+   Shiki — `github-light`, `light-plus`, `min-light`, `vitesse-light` e
+   `catppuccin-latte` — contra o nosso fundo, e **todos reprovam em 4.5:1** em pelo
+   menos dois tokens. O melhor deles chega a 3.68 no pior caso, e mesmo sobre branco
+   puro passa raspando (4.57). Temas de sintaxe são desenhados para parecerem bonitos,
+   não para atingirem contraste AA. O tema em `src/lib/design/code-theme.ts` sai da
+   nossa paleta e é verificado pelo mesmo teste de contraste do resto do design system.
 6. **3D** — fallback SVG primeiro, three.js como camada por cima, com o modelo escolhido.
 7. **Fechamento** — auditoria de acessibilidade, Lighthouse, SEO, metadados sociais.
 
@@ -753,3 +774,7 @@ Registro do que foi perguntado e como ficou, para não se repetir a discussão:
 | 30/07/2026 | Token `lineStrong` criado | `line` reprovou em 3:1; faltava uma borda que carrega significado |
 | 30/07/2026 | Fontes: Zilla 400/700, Source Serif variável, Plex Mono 400 | Menos pesos, menos arquivos na rede |
 | 30/07/2026 | `.astro`: `noUnusedVariables` e `noUnusedImports` desligados | Biome não lê o template, então acusa falso positivo em tudo que é usado só na marcação |
+| 31/07/2026 | Tema de sintaxe próprio em vez de tema pronto do Shiki | Os cinco temas claros mais usados reprovam em contraste AA sobre fundo com tom |
+| 31/07/2026 | URL traduzida existe mesmo sem tradução | 404 trataria como erro do visitante algo que é só conteúdo ainda não escrito |
+| 31/07/2026 | Data validada entre caminho e frontmatter | As duas podem divergir; divergindo, URL e página se contradizem |
+| 31/07/2026 | Uma rota por forma, com `[...lang]`, servindo os dois idiomas | Metade dos arquivos de rota, sem duplicar lógica de listagem |

@@ -1,0 +1,130 @@
+---
+import { getCollection } from 'astro:content';
+import LanguageSwitcher from '../../../components/LanguageSwitcher.astro';
+import PostList from '../../../components/PostList.astro';
+import Base from '../../../layouts/Base.astro';
+import { type Locale, locales } from '../../../lib/i18n/locales.ts';
+import { monthName } from '../../../lib/i18n/month-name.ts';
+import { ui } from '../../../lib/i18n/ui.ts';
+import { groupPosts } from '../../../lib/posts/group-posts.ts';
+import { selectPosts } from '../../../lib/posts/select-posts.ts';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('blog');
+
+  return locales.map((locale) => ({
+    params: { lang: locale === 'en' ? 'en' : undefined },
+    props: {
+      locale,
+      posts: selectPosts(entries, locale, { includeDrafts: import.meta.env.DEV }),
+    },
+  }));
+}
+
+const { locale, posts } = Astro.props as {
+  locale: Locale;
+  posts: Awaited<ReturnType<typeof selectPosts>>;
+};
+
+const years = groupPosts(posts);
+const prefix = locale === 'en' ? '/en' : '';
+---
+
+<Base title={`${ui.blogTitle[locale]} — Henrique Artur`} description={ui.blogDescription[locale]} locale={locale}>
+  <div class="shell">
+    <header class="head">
+      <div class="head__top">
+        <p class="label">
+          <a href={`${prefix}/`}>{ui.blogHome[locale]}</a>
+        </p>
+        <LanguageSwitcher locale={locale} pathname={Astro.url.pathname} />
+      </div>
+      <h1>{ui.blogTitle[locale]}</h1>
+      <p class="head__lead">{ui.blogDescription[locale]}</p>
+    </header>
+
+    <main id="conteudo">
+      {posts.length === 0 && <p>{ui.blogEmpty[locale]}</p>}
+
+      {
+        years.map((year) => (
+          <section class="year" aria-labelledby={`ano-${year.year}`}>
+            <h2 id={`ano-${year.year}`} class="year__title">
+              <a href={`${prefix}/blog/${year.year}/`}>{year.year}</a>
+            </h2>
+
+            {year.months.map((month) => (
+              <section class="month" aria-labelledby={`mes-${year.year}-${month.month}`}>
+                <h3 id={`mes-${year.year}-${month.month}`} class="label month__title">
+                  <a href={`${prefix}/blog/${year.year}/${String(month.month).padStart(2, '0')}/`}>
+                    {monthName(month.month, locale)}
+                  </a>
+                </h3>
+                <PostList posts={month.posts} locale={locale} />
+              </section>
+            ))}
+          </section>
+        ))
+      }
+    </main>
+
+    <footer class="footer">
+      <p class="label">© Henrique Artur</p>
+    </footer>
+  </div>
+</Base>
+
+<style>
+  .shell {
+    max-width: var(--layout-max-width);
+    padding-inline: var(--space-2);
+    margin-inline: auto;
+  }
+
+  .head {
+    padding-block: var(--space-4) var(--space-6);
+  }
+
+  .head__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: var(--space-3);
+  }
+
+  .head__lead {
+    max-width: var(--layout-measure);
+    color: var(--color-ink-soft);
+  }
+
+  .year {
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  .year__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .month {
+    margin-block-start: var(--space-3);
+  }
+
+  .month__title {
+    margin-block-end: var(--space-2);
+  }
+
+  .footer {
+    padding-block: var(--space-4);
+    margin-block-start: var(--space-6);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  @media (min-width: 48rem) {
+    .shell {
+      padding-inline: var(--space-4);
+    }
+  }
+</style>

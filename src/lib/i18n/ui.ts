@@ -59,6 +59,32 @@ export const ui = {
   educationLabel: { 'pt-BR': 'Formação', en: 'Education' },
   educationTitle: { 'pt-BR': 'Onde eu estudei', en: 'Where I studied' },
 
+  blogLabel: { 'pt-BR': 'Blog', en: 'Blog' },
+  blogTitle: { 'pt-BR': 'Blog', en: 'Blog' },
+  blogDescription: {
+    'pt-BR': 'Notas sobre arquitetura, qualidade e o ofício de construir software.',
+    en: 'Notes on architecture, quality, and the craft of building software.',
+  },
+  blogEmpty: {
+    'pt-BR': 'Ainda não há posts publicados.',
+    en: 'No posts published yet.',
+  },
+  blogAll: { 'pt-BR': 'Todos os posts', en: 'All posts' },
+  blogBack: { 'pt-BR': 'Voltar ao blog', en: 'Back to the blog' },
+  blogHome: { 'pt-BR': 'Início', en: 'Home' },
+  publishedOn: { 'pt-BR': 'Publicado em', en: 'Published on' },
+  tagsLabel: { 'pt-BR': 'Marcadores', en: 'Tags' },
+  postsInYear: { 'pt-BR': 'Posts de', en: 'Posts from' },
+
+  noTranslationTitle: {
+    'pt-BR': 'Este post ainda não foi traduzido',
+    en: 'This post has not been translated yet',
+  },
+  noTranslationBody: {
+    'pt-BR': 'Ele existe em inglês. Você pode lê-lo no idioma original:',
+    en: 'It exists in Portuguese. You can read it in the original language:',
+  },
+
   contactLabel: { 'pt-BR': 'Contato', en: 'Contact' },
   contactTitle: { 'pt-BR': 'Vamos conversar', en: 'Let’s talk' },
   contactLead: {

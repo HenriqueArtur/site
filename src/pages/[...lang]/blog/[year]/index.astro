@@ -1,0 +1,99 @@
+---
+import { getCollection } from 'astro:content';
+import LanguageSwitcher from '../../../../components/LanguageSwitcher.astro';
+import PostList from '../../../../components/PostList.astro';
+import Base from '../../../../layouts/Base.astro';
+import { locales } from '../../../../lib/i18n/locales.ts';
+import { monthName } from '../../../../lib/i18n/month-name.ts';
+import { ui } from '../../../../lib/i18n/ui.ts';
+import { groupPosts } from '../../../../lib/posts/group-posts.ts';
+import { selectPosts } from '../../../../lib/posts/select-posts.ts';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('blog');
+  const paths = [];
+
+  for (const locale of locales) {
+    const posts = selectPosts(entries, locale, { includeDrafts: import.meta.env.DEV });
+
+    for (const year of groupPosts(posts)) {
+      paths.push({
+        params: { lang: locale === 'en' ? 'en' : undefined, year: String(year.year) },
+        props: { locale, year },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { locale, year } = Astro.props;
+const prefix = locale === 'en' ? '/en' : '';
+const title = `${ui.postsInYear[locale]} ${year.year}`;
+---
+
+<Base title={`${title} — Henrique Artur`} description={ui.blogDescription[locale]} locale={locale}>
+  <div class="shell">
+    <header class="head">
+      <div class="head__top">
+        <p class="label">
+          <a href={`${prefix}/blog/`}>{ui.blogAll[locale]}</a>
+        </p>
+        <LanguageSwitcher locale={locale} pathname={Astro.url.pathname} />
+      </div>
+      <h1>{title}</h1>
+    </header>
+
+    <main id="conteudo">
+      {
+        year.months.map((month) => (
+          <section class="month" aria-labelledby={`mes-${month.month}`}>
+            <h2 id={`mes-${month.month}`} class="month__title">
+              <a href={`${prefix}/blog/${year.year}/${String(month.month).padStart(2, '0')}/`}>
+                {monthName(month.month, locale)}
+              </a>
+            </h2>
+            <PostList posts={month.posts} locale={locale} />
+          </section>
+        ))
+      }
+    </main>
+  </div>
+</Base>
+
+<style>
+  .shell {
+    max-width: var(--layout-max-width);
+    padding-inline: var(--space-2);
+    margin-inline: auto;
+  }
+
+  .head {
+    padding-block: var(--space-4) var(--space-4);
+  }
+
+  .head__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: var(--space-3);
+  }
+
+  .month {
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  .month__title {
+    margin-block-end: var(--space-2);
+    font-size: var(--font-size-xl);
+  }
+
+  @media (min-width: 48rem) {
+    .shell {
+      padding-inline: var(--space-4);
+    }
+  }
+</style>

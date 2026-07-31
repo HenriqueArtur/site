@@ -35,7 +35,12 @@ const others = openSource.filter((repo) => !repo.featured);
         <p class="label hero__eyebrow">
           {profile.role[locale]} · {profile.location[locale]}
         </p>
-        <LanguageSwitcher locale={locale} pathname={pathname} />
+        <div class="hero__nav">
+          <p class="label">
+            <a href={locale === 'en' ? '/en/blog/' : '/blog/'}>{ui.blogLabel[locale]}</a>
+          </p>
+          <LanguageSwitcher locale={locale} pathname={pathname} />
+        </div>
       </div>
 
       <h1 class="hero__name">{profile.name}</h1>
@@ -276,6 +281,12 @@ const others = openSource.filter((repo) => !repo.featured);
 
   .hero__eyebrow {
     margin: 0;
+  }
+
+  .hero__nav {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
   }
 
   .hero__name {

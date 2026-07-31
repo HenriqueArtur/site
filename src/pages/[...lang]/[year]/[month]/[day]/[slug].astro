@@ -1,0 +1,255 @@
+---
+import { getCollection, render } from 'astro:content';
+import LanguageSwitcher from '../../../../../components/LanguageSwitcher.astro';
+import Base from '../../../../../layouts/Base.astro';
+import { formatPeriod } from '../../../../../lib/i18n/format-period.ts';
+import { type Locale, locales } from '../../../../../lib/i18n/locales.ts';
+import { monthName } from '../../../../../lib/i18n/month-name.ts';
+import { ui } from '../../../../../lib/i18n/ui.ts';
+import { missingTranslations } from '../../../../../lib/posts/missing-translations.ts';
+import { type Post, selectPosts } from '../../../../../lib/posts/select-posts.ts';
+
+const pad = (value: number) => String(value).padStart(2, '0');
+
+export async function getStaticPaths() {
+  // Estas funções vivem aqui dentro de propósito: o Astro iça getStaticPaths
+  // para um módulo separado, então ela não enxerga nada do escopo do componente.
+  const padSegment = (value: number) => String(value).padStart(2, '0');
+  const paramsFor = (locale: Locale, post: Post) => ({
+    lang: locale === 'en' ? 'en' : undefined,
+    year: String(post.year),
+    month: padSegment(post.month),
+    day: padSegment(post.day),
+    slug: post.slug,
+  });
+
+  const entries = await getCollection('blog');
+  const paths = [];
+
+  for (const locale of locales) {
+    for (const post of selectPosts(entries, locale, { includeDrafts: import.meta.env.DEV })) {
+      const entry = entries.find((candidate) => candidate.id === post.id);
+      paths.push({
+        params: paramsFor(locale, post),
+        props: { locale, post, entry, translated: true },
+      });
+    }
+
+    // A URL traduzida existe mesmo sem tradução: ela explica a ausência e leva
+    // ao original, em vez de devolver um 404 que soa como erro do visitante.
+    for (const post of missingTranslations(entries, locale)) {
+      paths.push({
+        params: paramsFor(locale, post),
+        props: { locale, post, entry: undefined, translated: false },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { locale, post, entry, translated } = Astro.props;
+
+const Content = translated && entry ? (await render(entry)).Content : null;
+
+const prefix = locale === 'en' ? '/en' : '';
+const publishedLabel = `${pad(post.day)} ${monthName(post.month, locale)} ${post.year}`;
+const machineDate = `${post.year}-${pad(post.month)}-${pad(post.day)}`;
+
+const title = translated ? post.title : ui.noTranslationTitle[locale];
+const description = translated ? post.description : ui.noTranslationBody[locale];
+---
+
+<Base title={`${title} — Henrique Artur`} description={description} locale={locale}>
+  <div class="shell">
+    <header class="head">
+      <div class="head__top">
+        <p class="label">
+          <a href={`${prefix}/blog/`}>{ui.blogBack[locale]}</a>
+        </p>
+        <LanguageSwitcher locale={locale} pathname={Astro.url.pathname} />
+      </div>
+    </header>
+
+    <main id="conteudo">
+      {
+        translated ? (
+          <article>
+            <p class="label article__date">
+              {ui.publishedOn[locale]}{' '}
+              <time datetime={machineDate}>{publishedLabel}</time>
+            </p>
+            <h1 class="article__title">{post.title}</h1>
+            <p class="article__description">{post.description}</p>
+
+            {post.tags.length > 0 && (
+              <ul class="tags" aria-label={ui.tagsLabel[locale]}>
+                {post.tags.map((tag) => (
+                  <li class="tag">{tag}</li>
+                ))}
+              </ul>
+            )}
+
+            <div class="post-body">
+              <Content />
+            </div>
+          </article>
+        ) : (
+          <div class="missing">
+            <h1 class="article__title">{ui.noTranslationTitle[locale]}</h1>
+            <p>{ui.noTranslationBody[locale]}</p>
+            <p class="missing__link">
+              <a href={post.path} hreflang={post.locale} lang={post.locale}>
+                {post.title}
+              </a>
+            </p>
+          </div>
+        )
+      }
+    </main>
+
+    <footer class="footer">
+      <p class="label">
+        <a href={`${prefix}/blog/`}>{ui.blogBack[locale]}</a>
+      </p>
+    </footer>
+  </div>
+</Base>
+
+<style>
+  .shell {
+    max-width: 46rem;
+    padding-inline: var(--space-2);
+    margin-inline: auto;
+  }
+
+  .head {
+    padding-block: var(--space-4) var(--space-4);
+  }
+
+  .head__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .article__date {
+    color: var(--color-accent-deep);
+  }
+
+  .article__title {
+    font-size: var(--font-size-3xl);
+    margin-block: var(--space-1) var(--space-2);
+  }
+
+  .article__description {
+    font-size: var(--font-size-lg);
+    color: var(--color-ink-soft);
+    margin-block-end: var(--space-3);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0;
+    margin-block-end: var(--space-4);
+    list-style: none;
+  }
+
+  .tag {
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    background-color: var(--color-paper-deep);
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .missing__link {
+    margin-block-start: var(--space-2);
+    font-size: var(--font-size-lg);
+  }
+
+  .footer {
+    padding-block: var(--space-4);
+    margin-block-start: var(--space-8);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  /* ---------- corpo do post ---------- */
+
+  .post-body {
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  .post-body :global(> * + *) {
+    margin-block-start: var(--space-2);
+  }
+
+  .post-body :global(h2) {
+    margin-block-start: var(--space-4);
+  }
+
+  .post-body :global(h3) {
+    margin-block-start: var(--space-3);
+  }
+
+  .post-body :global(p),
+  .post-body :global(li) {
+    max-width: var(--layout-measure);
+  }
+
+  .post-body :global(ul),
+  .post-body :global(ol) {
+    padding-inline-start: var(--space-3);
+  }
+
+  .post-body :global(li + li) {
+    margin-block-start: 0.25rem;
+  }
+
+  .post-body :global(blockquote) {
+    padding-inline-start: var(--space-2);
+    color: var(--color-ink-soft);
+    border-inline-start: 3px solid var(--color-accent);
+  }
+
+  /* Código inline: monoespaçado com moldura leve, no vocabulário do resto. */
+  .post-body :global(:not(pre) > code) {
+    padding: 0.0625rem 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background-color: var(--color-paper-deep);
+    border: 1px solid var(--color-line);
+  }
+
+  /* Bloco de código: rola sozinho, para a página nunca rolar na horizontal. */
+  .post-body :global(pre) {
+    padding: var(--space-2);
+    overflow-x: auto;
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .post-body :global(pre code) {
+    font-family: var(--font-mono);
+  }
+
+  .post-body :global(img) {
+    border: 1px solid var(--color-line-strong);
+  }
+
+  .post-body :global(hr) {
+    border: 0;
+    border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  @media (min-width: 48rem) {
+    .shell {
+      padding-inline: var(--space-4);
+    }
+  }
+</style>

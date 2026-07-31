@@ -20,6 +20,8 @@ describe('ui', () => {
       'openSourceLabel',
       'switchToPortuguese',
       'switchToEnglish',
+      'blogLabel',
+      'blogTitle',
     ]);
 
     for (const [key, value] of Object.entries(ui)) {

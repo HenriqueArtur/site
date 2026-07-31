@@ -1,0 +1,60 @@
+---
+import { formatPeriod } from '../lib/i18n/format-period.ts';
+import type { Locale } from '../lib/i18n/locales.ts';
+import type { Post } from '../lib/posts/select-posts.ts';
+
+interface Props {
+  posts: Post[];
+  locale: Locale;
+}
+
+const { posts, locale } = Astro.props;
+
+const pad = (value: number) => String(value).padStart(2, '0');
+---
+
+<ul class="posts">
+  {
+    posts.map((post) => (
+      <li class="posts__item">
+        <p class="label posts__date">
+          <time datetime={`${post.year}-${pad(post.month)}-${pad(post.day)}`}>
+            {pad(post.day)} · {formatPeriod(`${post.year}-${pad(post.month)}`, null, locale).split(' —')[0]}
+          </time>
+        </p>
+        <h4 class="posts__title">
+          <a href={post.path}>{post.title}</a>
+        </h4>
+        <p class="posts__description">{post.description}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .posts {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .posts__item {
+    padding-inline-start: var(--space-2);
+    border-inline-start: 2px solid var(--color-line-strong);
+  }
+
+  .posts__date {
+    color: var(--color-accent-deep);
+  }
+
+  .posts__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .posts__description {
+    max-width: var(--layout-measure);
+    font-size: var(--font-size-sm);
+    color: var(--color-ink-soft);
+  }
+</style>
