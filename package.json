@@ -9,7 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "fmt": "biome check --write .",
-    "check:style": "biome ci .",
+    "check:style": "biome ci --error-on-warnings .",
     "check:types": "astro sync && tsc --noEmit",
     "check:arch": "archwarden check",
     "check": "bun run check:style && bun run check:types && bun run check:arch",

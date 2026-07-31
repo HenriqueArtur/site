@@ -105,14 +105,6 @@ body {
   background-color: var(--color-ink);
 }
 
-.surface--inverted a {
-  color: var(--color-paper);
-}
-
-.surface--inverted .label {
-  color: var(--color-line);
-}
-
 /* ---------- tipografia ---------- */
 
 h1,
@@ -176,6 +168,17 @@ a {
 
 a:hover {
   text-decoration-thickness: 2px;
+}
+
+/* Sobrepõem as regras base acima. Ficam DEPOIS delas de propósito: uma regra
+   mais específica declarada antes vence por especificidade, mas obriga quem lê
+   a calcular isso de cabeça para entender a cascata. */
+.surface--inverted a {
+  color: var(--color-paper);
+}
+
+.surface--inverted .label {
+  color: var(--color-line);
 }
 
 /* ---------- foco ---------- */
