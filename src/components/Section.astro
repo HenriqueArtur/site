@@ -28,21 +28,35 @@ const { id, number, label, title, surface, note } = Astro.props;
     </p>
 
     <div class="section__head reveal">
-      <h2 id={`${id}-title`} class="section__title">{title}</h2>
+      {/*
+        Título e traço dentro de um invólucro que encolhe até a largura do
+        texto. O <h2> sozinho é bloco e ocupa a linha inteira, então um traço
+        com 100% dele sairia muito maior que o título.
+      */}
+      <div class="section__title-wrap">
+        <h2 id={`${id}-title`} class="section__title">{title}</h2>
 
-      {/* Traço à mão sob o título. Decorativo: o texto já está no h2. */}
-      <svg
-        class="sketch-rule draw"
-        viewBox="0 0 300 10"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path
-          d="M3 7 C 46 2, 88 9, 132 5 S 214 2, 262 6 S 288 8, 297 4"
-          stroke-dasharray="320"
-        ></path>
-      </svg>
+        {/* Traço à mão sob o título. Decorativo: o texto já está no h2. */}
+        <svg
+          class="sketch-rule"
+          viewBox="0 0 300 10"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          {/*
+            `pathLength="100"` normaliza o comprimento: o dasharray deixa de
+            depender da geometria do caminho, que agora estica junto com o
+            título. Sem isso, título curto e título longo teriam animações de
+            escrita diferentes — um terminaria antes, o outro deixaria sobra.
+          */}
+          <path
+            class="draw"
+            pathLength="100"
+            d="M3 7 C 46 2, 88 9, 132 5 S 214 2, 262 6 S 288 8, 297 4"
+          ></path>
+        </svg>
+      </div>
 
       {note && <p class="margin-note section__note">{note}</p>}
     </div>
@@ -50,6 +64,44 @@ const { id, number, label, title, surface, note } = Astro.props;
     <slot />
   </div>
 </section>
+
+<script>
+  import { underlineWidth } from '../lib/design/underline-width.ts';
+
+  /*
+   * O traço acompanha a última linha do título.
+   *
+   * Precisa de medição porque CSS não sabe a largura de uma linha de texto —
+   * `fit-content` mede a caixa inteira, que num título de duas linhas é a
+   * largura total, e o traço fica solto à direita da última linha.
+   *
+   * `Range.getClientRects()` devolve um retângulo por linha, que é exatamente o
+   * dado que falta.
+   */
+  const measure = () => {
+    for (const title of document.querySelectorAll<HTMLElement>('.section__title')) {
+      const wrap = title.closest<HTMLElement>('.section__title-wrap');
+      if (!wrap) continue;
+
+      const range = document.createRange();
+      range.selectNodeContents(title);
+      const width = underlineWidth([...range.getClientRects()].map((rect) => rect.width));
+      range.detach();
+
+      if (width === null) wrap.style.removeProperty('--rule-width');
+      else wrap.style.setProperty('--rule-width', `${Math.round(width)}px`);
+    }
+  };
+
+  measure();
+
+  // As fontes são carregadas por @font-face: até elas chegarem, o texto está na
+  // fonte de sistema e quebra em outros pontos. Medir só uma vez daria a
+  // largura da fonte errada.
+  document.fonts?.ready.then(measure);
+
+  addEventListener('resize', measure, { passive: true });
+</script>
 
 <style>
   /*
@@ -106,8 +158,34 @@ const { id, number, label, title, surface, note } = Astro.props;
     margin-block-end: var(--space-3);
   }
 
+  /*
+   * `fit-content` para o invólucro encolher até a largura do título — mas o
+   * <svg> tem tamanho intrínseco vindo do viewBox (300px de largura) e
+   * contribuiria para essa conta, deixando o invólucro com no mínimo 300px.
+   * Era por isso que só os títulos CURTOS saíam com o traço maior que eles.
+   *
+   * Posicionar o traço absoluto o tira do cálculo de largura por completo: ele
+   * passa a esticar até a largura do invólucro, que agora é só a do título. O
+   * espaço dele é reservado pelo padding de baixo.
+   */
+  .section__title-wrap {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    padding-block-end: 0.5rem;
+  }
+
+  /*
+   * Sem `text-wrap: balance`, que a regra global aplica a h1-h4.
+   *
+   * Balance distribui o texto em linhas de comprimento parecido — ótimo para o
+   * nome no hero, ruim aqui: no mobile, um título que não cabe numa linha vira
+   * duas linhas curtas em vez de uma cheia e um resto. O traço, que acompanha a
+   * largura do título, herda essa largura menor e fica desproporcional.
+   */
   .section__title {
     margin-block-end: 0.25rem;
+    text-wrap: wrap;
   }
 
   .section__note {

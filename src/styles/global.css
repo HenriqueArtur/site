@@ -160,25 +160,101 @@ li {
 
 /* ---------- links ---------- */
 
+/*
+ * Links, e o marca-texto que passa no hover.
+ *
+ * O destaque é `background-image` no próprio link, e não um pseudo-elemento com
+ * `z-index: -1`. Fundo é pintado atrás do texto por definição, sem depender de
+ * contexto de empilhamento — e este site tem cartões, seções invertidas e
+ * elementos transformados suficientes para que um z-index negativo acabasse
+ * escondido atrás de algum deles.
+ *
+ * Duas camadas de alturas e posições diferentes, com faixas de densidade
+ * irregular: é o que impede o traço de parecer um retângulo. Uma camada só, por
+ * mais bem-feita, lê como preenchimento.
+ */
 a {
+  --marker: var(--color-accent);
+
   color: var(--color-accent-deep);
+  background-image:
+    repeating-linear-gradient(
+      97deg,
+      color-mix(in srgb, var(--marker) 44%, transparent) 0 7px,
+      color-mix(in srgb, var(--marker) 30%, transparent) 7px 13px,
+      color-mix(in srgb, var(--marker) 40%, transparent) 13px 24px,
+      color-mix(in srgb, var(--marker) 26%, transparent) 24px 31px
+    ),
+    repeating-linear-gradient(
+      93deg,
+      color-mix(in srgb, var(--marker) 26%, transparent) 0 11px,
+      color-mix(in srgb, var(--marker) 16%, transparent) 11px 19px,
+      color-mix(in srgb, var(--marker) 30%, transparent) 19px 29px
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 92%,
+    0 45%;
+  background-size:
+    0 0.95em,
+    0 0.78em;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
+  transition:
+    background-size 340ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    color 220ms ease-out;
 }
 
+/*
+ * O texto escurece junto. Marca-texto laranja atrás de link laranja converge:
+ * medido, o par só passa em AA até 18% de tinta, fraco demais para ler como
+ * marcador. Com o texto em `ink`, sobra folga até onde as duas camadas se
+ * sobrepõem nas faixas mais densas — 6.60:1.
+ */
 a:hover {
+  color: var(--color-ink);
   text-decoration-thickness: 2px;
+  background-size:
+    100% 0.95em,
+    100% 0.78em;
 }
 
 /* Sobrepõem as regras base acima. Ficam DEPOIS delas de propósito: uma regra
    mais específica declarada antes vence por especificidade, mas obriga quem lê
    a calcular isso de cabeça para entender a cascata. */
 .surface--inverted a {
+  --marker: var(--color-accent-on-dark);
+
+  color: var(--color-paper);
+}
+
+/* Sobre tinta o texto já é claro e o contraste sobre a marca fica em 9:1 —
+   escurecê-lo aqui seria o movimento errado. */
+.surface--inverted a:hover {
   color: var(--color-paper);
 }
 
 .surface--inverted .label {
   color: var(--color-line);
+}
+
+/*
+ * Texto para leitor de tela, invisível na página.
+ *
+ * `clip-path` mais 1px de tamanho, e não `display: none` nem `visibility:
+ * hidden` — esses dois removem o elemento da árvore de acessibilidade também,
+ * que é exatamente o contrário do objetivo.
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- foco ---------- */
@@ -251,10 +327,21 @@ a:hover {
   transform: rotate(-1.2deg);
 }
 
-/* Traço à mão livre sob o título. O caminho é irregular de propósito. */
+/*
+ * Traço à mão livre sob o título, com a largura do título.
+ *
+ * `width: 100%` dentro de um invólucro `fit-content` — antes era
+ * `min(14rem, 60%)`, um tamanho fixo que não tinha relação nenhuma com o texto
+ * acima dele.
+ */
 .sketch-rule {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
   display: block;
-  width: min(14rem, 60%);
+  /* `--rule-width` é medido em JS e vale a largura da última linha do título.
+     Sem JS, o padrão de 100% mantém o traço acompanhando o invólucro. */
+  width: var(--rule-width, 100%);
   height: 0.5rem;
   overflow: visible;
   color: var(--color-accent);
@@ -265,6 +352,21 @@ a:hover {
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
+  /*
+   * Com pathLength="100", 100 é "não escrito" e 0 é "escrito por inteiro",
+   * independentemente de quanto o caminho esticou.
+   *
+   * `stroke-dashoffset` não é declarado em lugar nenhum no repouso: o valor
+   * inicial dele já é 0, ou seja, traço inteiro visível. Quem esconde é sempre
+   * a animação.
+   *
+   * A classe `draw` está no <path>, e não no <svg>, de propósito. Animar no
+   * <svg> depende de `stroke-dashoffset` ser herdada pelo <path> — e basta uma
+   * declaração direta no <path>, em qualquer regra, para a herança deixar de
+   * chegar. Animar no elemento que de fato desenha o traço remove essa
+   * fragilidade inteira.
+   */
+  stroke-dasharray: 100;
 }
 
 /* ---------- movimento ---------- */
@@ -300,13 +402,37 @@ a:hover {
       animation-range: entry 0% entry 60%;
     }
 
+    /*
+     * `cover`, e não `entry` — e a diferença aqui é entre funcionar e não
+     * funcionar.
+     *
+     * O intervalo `entry` dura enquanto o elemento está PARCIALMENTE visível,
+     * ou seja, a própria altura dele em rolagem. O traço tem 8px de altura:
+     * a animação inteira acontecia em 8 pixels, e terminava antes de qualquer
+     * um ver. O valor computado ficava sempre em 0, indistinguível de "a
+     * animação não existe".
+     *
+     * `cover` vai da primeira borda entrando até a última saindo, ou seja
+     * altura da janela + altura do elemento. Uma fração disso é escrita
+     * legível.
+     *
+     * E a fração termina cedo (30%) por dois motivos. O primeiro é que fechar o
+     * traço no meio da tela parece atrasado — a escrita deve terminar pouco
+     * depois de o título aparecer. O segundo é a última seção da página: depois
+     * dela só existe o rodapé, então a rolagem restante é curta, e um intervalo
+     * longo simplesmente nunca completa. A 42% não completava no Contato; 30% é
+     * o teto prático por causa disso, não por gosto.
+     *
+     * Regra geral: `entry` só serve para elementos altos. Para qualquer coisa
+     * pequena, o intervalo precisa ser `cover`.
+     */
     .draw {
       animation-name: draw;
       animation-duration: auto;
       animation-timing-function: linear;
       animation-fill-mode: both;
       animation-timeline: view();
-      animation-range: entry 10% entry 70%;
+      animation-range: cover 5% cover 30%;
     }
   }
 }
@@ -354,7 +480,7 @@ a:hover {
 /* O traço sob o título: stroke-dashoffset é herdado, então animá-lo no <svg>
    chega ao <path> sem precisar de um seletor para ele. */
 .js-motion .draw {
-  stroke-dashoffset: 320;
+  stroke-dashoffset: 100;
   transition: stroke-dashoffset 700ms ease-out;
 }
 
@@ -378,7 +504,7 @@ a:hover {
 
 @keyframes draw {
   from {
-    stroke-dashoffset: 320;
+    stroke-dashoffset: 100;
   }
 
   to {

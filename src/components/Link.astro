@@ -1,0 +1,31 @@
+---
+import type { Locale } from '../lib/i18n/locales.ts';
+import { ui } from '../lib/i18n/ui.ts';
+import { isExternal } from '../lib/seo/is-external.ts';
+
+interface Props {
+  href: string;
+  locale: Locale;
+  class?: string;
+}
+
+const { href, locale, class: className } = Astro.props;
+
+const site = Astro.site?.href ?? 'https://henriqueartur.com';
+const external = isExternal(href, site);
+---
+
+{/*
+  Um componente em vez de repetir target e rel em cada <a>: a decisão de quando
+  abrir em nova aba fica num lugar só, e o aviso para leitor de tela não pode
+  ser esquecido num link novo.
+*/}
+<a
+  href={href}
+  class={className}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <slot />
+  {external && <span class="visually-hidden"> ({ui.newTab[locale]})</span>}
+</a>

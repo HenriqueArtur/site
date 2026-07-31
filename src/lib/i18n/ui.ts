@@ -11,6 +11,10 @@ export const ui = {
     'pt-BR': 'Pular para o conteúdo',
     en: 'Skip to content',
   },
+  newTab: {
+    'pt-BR': 'abre em nova aba',
+    en: 'opens in a new tab',
+  },
   contactLinks: {
     'pt-BR': 'Links de contato',
     en: 'Contact links',

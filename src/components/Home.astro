@@ -11,6 +11,7 @@ import { formatPeriod } from '../lib/i18n/format-period.ts';
 import type { Locale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
 import LanguageSwitcher from './LanguageSwitcher.astro';
+import Link from './Link.astro';
 import Section from './Section.astro';
 import Terrarium from './Terrarium.astro';
 
@@ -54,7 +55,7 @@ const others = openSource.filter((repo) => !repo.featured);
               {
                 profile.links.map((link) => (
                   <li>
-                    <a href={link.href}>{link.label}</a>
+                    <Link href={link.href} locale={locale}>{link.label}</Link>
                   </li>
                 ))
               }
@@ -173,7 +174,7 @@ const others = openSource.filter((repo) => !repo.featured);
           featured && (
             <article class="featured reveal">
               <h3 class="featured__name">
-                <a href={featured.href}>{featured.name}</a>
+                <Link href={featured.href} locale={locale}>{featured.name}</Link>
               </h3>
               <p class="label">{featured.language}</p>
               <p class="featured__text">{featured.description[locale]}</p>
@@ -186,7 +187,7 @@ const others = openSource.filter((repo) => !repo.featured);
             others.map((repo) => (
               <li class="card reveal">
                 <h3 class="card__title">
-                  <a href={repo.href}>{repo.name}</a>
+                  <Link href={repo.href} locale={locale}>{repo.name}</Link>
                 </h3>
                 <p class="label card__context">{repo.language}</p>
                 <p class="card__text">{repo.description[locale]}</p>
@@ -273,7 +274,7 @@ const others = openSource.filter((repo) => !repo.featured);
           {
             profile.links.map((link) => (
               <li>
-                <a href={link.href}>{link.label}</a>
+                <Link href={link.href} locale={locale}>{link.label}</Link>
               </li>
             ))
           }
@@ -286,9 +287,9 @@ const others = openSource.filter((repo) => !repo.featured);
       <p class="label">© {profile.name}</p>
       {/* Atribuição exigida pela CC BY 4.0 do modelo 3D. */}
       <p class="label footer__credit">
-        3D: <a href="https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24">Smol Ame in an upcycled terrarium</a>
+        3D: <Link href="https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24" locale={locale}>Smol Ame in an upcycled terrarium</Link>
         {' '}by Seafoam,{' '}
-        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+        <Link href="https://creativecommons.org/licenses/by/4.0/" locale={locale}>CC BY 4.0</Link>
       </p>
     </div>
   </footer>
@@ -798,7 +799,11 @@ const others = openSource.filter((repo) => !repo.featured);
     box-shadow: 2px 2px 0 color-mix(in srgb, var(--color-paper) 12%, transparent);
   }
 
-  :global(.surface--inverted) .card a {
+  /*
+   * `:global(a)` porque o <a> vem do componente Link e não carrega o escopo
+   * deste arquivo — um seletor escopado simplesmente não o alcança.
+   */
+  :global(.surface--inverted) .card :global(a) {
     color: var(--color-paper);
   }
 
@@ -827,8 +832,28 @@ const others = openSource.filter((repo) => !repo.featured);
     font-size: var(--font-size-xl);
   }
 
-  .featured__name a {
+  /*
+   * Idem, e aqui era crítico: sem esta regra sobrava a global
+   * `.surface--inverted a { color: paper }`, e o destaque agora tem fundo de
+   * papel — texto de papel sobre papel, invisível.
+   */
+  .featured__name :global(a) {
     color: var(--color-accent-deep);
+  }
+
+  /*
+   * O destaque é uma ilha CLARA dentro da seção invertida, e as regras de link
+   * daquela seção assumem fundo escuro: o marcador vem no laranja claro e o
+   * texto fica em `paper` no hover — papel sobre papel de novo.
+   *
+   * Aqui o link volta a se comportar como sobre papel, que é o que ele é.
+   */
+  .featured :global(a) {
+    --marker: var(--color-accent);
+  }
+
+  .featured :global(a:hover) {
+    color: var(--color-ink);
   }
 
   .featured__text {
