@@ -582,8 +582,9 @@ compila e as rotas esperadas existem) e por auditoria de acessibilidade.
 - Repositório: **`git@github.com:HenriqueArtur/site.git`** (público, já existe).
   Descrição definida: `📐 | My personal site and blog — henriqueartur.com`.
 - Build por GitHub Actions, deploy no GitHub Pages.
-- `public/CNAME` com `henriqueartur.com`; DNS com registros `A` para os IPs do GitHub
-  Pages (apex) e `CNAME` para `www`; "Enforce HTTPS" ligado.
+- `public/CNAME` com `henriqueartur.com`. **O DNS fica para depois de tudo pronto** —
+  decisão sua, e é por isso que o deploy está atrás da variável `PAGES_ENABLED`: sem
+  ela, o CI não falha por causa de uma etapa que ainda não pode funcionar.
 - Pipeline no CI, nesta ordem: `biome ci` → `tsc --noEmit` → `archwarden check` →
   `vitest run` → `astro build`. Qualquer etapa vermelha bloqueia o deploy.
 - **Hooks locais com husky:**
@@ -658,9 +659,6 @@ verdadeiro e verificável contra o LinkedIn, ao contrário de "4 anos como Tech 
   Bugaboo Studio.
 - Bibliotecas internas: componentes React, utilitários e framework de servidor, em
   paradigma funcional e documentadas.
-- **Super Gattai** — jogo pela The Guardian Dog Studio, eleito Melhor Jogo do Ceará em
-  2020. Não está mais disponível na Play Store, então entra como conquista, sem link de
-  download.
 
 **05 — Como eu trabalho.** Liderança técnica alinhada à visão da empresa; interlocução
 direta com C-level, produto e diretoria para priorização, KPIs e direcionamento;
@@ -813,8 +811,9 @@ Registro do que foi perguntado e como ficou, para não se repetir a discussão:
 3. **Sobreposição Amar.Elo × Nosso Lar.** **Resolvido:** a Amar.Elo era empresa do Nosso
    Lar Hospital e hoje se chama **Thera**. Viram uma entrada só na trajetória.
 
-4. **"Melhor Jogo do Ceará 2020".** **Resolvido:** o jogo é o **Super Gattai**, da The
-   Guardian Dog Studio. Saiu da Play Store, então entra como conquista sem link.
+4. **"Melhor Jogo do Ceará 2020".** O jogo é o **Super Gattai**, da The Guardian Dog
+   Studio. **Decidido em 31/07: fica fora do site.** A trajetória continua citando o
+   estúdio; o jogo e o prêmio, não.
 
 5. **"15 anos programando, 7 profissionais".** **Parcialmente resolvido:** adotado
    "quase 8 anos de experiência profissional" (desde a Container, ago/2018) e "programando
@@ -838,6 +837,21 @@ Registro do que foi perguntado e como ficou, para não se repetir a discussão:
 
 ---
 
+## 12.1 Blob de 4 MB no histórico — medido, e resolvido por não fazer nada
+
+O `.glb` original de 4,02 MB foi commitado antes de eu comprimi-lo, então vive no
+histórico. Medido de verdade, o custo é menor do que eu tinha estimado: o git comprime,
+e o objeto ocupa **1,12 MB** em disco. O repositório empacotado inteiro tem **2,2 MB**.
+
+**Decisão: deixar como está.** Reescrever o histórico mudaria os SHA de 7 commits,
+exigiria force-push, invalidaria qualquer clone existente, e no GitHub o objeto só sairia
+de fato depois do GC deles. Tudo isso para economizar 1,1 MB num repositório de 2,2 MB.
+
+Se um dia houver vários modelos e o repositório passar de ~20 MB, vale reconsiderar — e
+nesse momento o certo é uma limpeza única, não commit a commit.
+
+---
+
 ## 13. Decisões registradas
 
 | Data | Decisão | Motivo |
@@ -858,7 +872,7 @@ Registro do que foi perguntado e como ficou, para não se repetir a discussão:
 | 30/07/2026 | "Mais de 6 anos liderando times e projetos" | Verificável contra o LinkedIn, ao contrário de "4 anos como Tech Lead" |
 | 30/07/2026 | Sistema S atribuído à Bugaboo Studio | Confirmado por você |
 | 30/07/2026 | Nosso Lar e Amar.Elo (hoje Thera) em uma entrada só | Mesma empresa; explica a sobreposição de datas |
-| 30/07/2026 | Super Gattai listado como conquista, sem link | Fora da Play Store |
+| 31/07/2026 | Super Gattai e o prêmio ficam fora do site | Decisão sua; a trajetória ainda cita o estúdio |
 | 30/07/2026 | bun como gerenciador de pacotes | Pedido seu; npm descartado |
 | 30/07/2026 | Versões exatas sempre, travadas em `bunfig.toml` | Convenção sua; evita divergência entre package.json e lockfile |
 | 30/07/2026 | Node 24 fixado em `.mise.toml` | Astro 7 exige >=22.12; o global (22.11) fazia o instalador cair silenciosamente no Astro 5 com CVEs |
