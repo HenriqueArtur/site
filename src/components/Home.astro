@@ -5,7 +5,6 @@ import { impact } from '../lib/content/impact.ts';
 import { openSource } from '../lib/content/open-source.ts';
 import { profile } from '../lib/content/profile.ts';
 import { projects } from '../lib/content/projects.ts';
-import { stack } from '../lib/content/stack.ts';
 import { timeline } from '../lib/content/timeline.ts';
 import { sectionSurfaces } from '../lib/design/section-surfaces.ts';
 import { formatPeriod } from '../lib/i18n/format-period.ts';
@@ -164,43 +163,9 @@ const others = openSource.filter((repo) => !repo.featured);
       </Section>
 
       <Section
-        id="stack"
-        surface={sectionSurfaces['stack']}
-        note={ui.noteStack[locale]}
-        number="04"
-        label={ui.stackLabel[locale]}
-        title={ui.stackTitle[locale]}
-      >
-        <dl class="stack tilt-list">
-          {
-            stack.current.map((group) => (
-              <div class="stack__group">
-                <dt class="label">{group.label[locale]}</dt>
-                <dd>
-                  <ul class="tags">
-                    {group.items.map((item) => (
-                      <li class="tag">{item}</li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            ))
-          }
-          <div class="stack__group">
-            <dt class="label">{ui.stackPast[locale]}</dt>
-            <dd>
-              <ul class="tags">
-                {stack.past.map((item) => <li class="tag tag--muted">{item}</li>)}
-              </ul>
-            </dd>
-          </div>
-        </dl>
-      </Section>
-
-      <Section
         id="open-source"
         surface={sectionSurfaces['open-source']}
-        number="05"
+        number="04"
         label={ui.openSourceLabel[locale]}
         title={ui.openSourceTitle[locale]}
       >
@@ -235,14 +200,23 @@ const others = openSource.filter((repo) => !repo.featured);
         id="trajetoria"
         surface={sectionSurfaces['trajetoria']}
         note={ui.noteTimeline[locale]}
-        number="06"
+        number="05"
         label={ui.timelineLabel[locale]}
         title={ui.timelineTitle[locale]}
       >
-        <ol class="timeline tilt-list">
+        <ol class="timeline">
           {
             timeline.map((entry) => (
-              <li class="timeline__entry reveal">
+              <li
+                class="timeline__entry reveal"
+                data-current={entry.end === null ? 'true' : undefined}
+              >
+                {/*
+                  Marcador como elemento, e não ::before: o driver precisa medir
+                  a posição exata do centro dele para sincronizar com a linha, e
+                  pseudo-elemento não é mensurável por JS.
+                */}
+                <span class="timeline__dot" aria-hidden="true"></span>
                 <p class="label timeline__period">{formatPeriod(entry.start, entry.end, locale)}</p>
                 <h3 class="timeline__company">{entry.company}</h3>
                 <ul class="timeline__roles">
@@ -265,14 +239,14 @@ const others = openSource.filter((repo) => !repo.featured);
       <Section
         id="formacao"
         surface={sectionSurfaces['formacao']}
-        number="07"
+        number="06"
         label={ui.educationLabel[locale]}
         title={ui.educationTitle[locale]}
       >
-        <ol class="timeline tilt-list">
+        <ol class="records">
           {
             education.map((degree) => (
-              <li class="timeline__entry reveal">
+              <li class="records__entry reveal">
                 <p class="label timeline__period">
                   {formatPeriod(degree.start, degree.end, locale)}
                 </p>
@@ -288,7 +262,7 @@ const others = openSource.filter((repo) => !repo.featured);
       <Section
         id="contato"
         surface={sectionSurfaces['contato']}
-        number="08"
+        number="07"
         label={ui.contactLabel[locale]}
         title={ui.contactTitle[locale]}
       >
@@ -319,6 +293,80 @@ const others = openSource.filter((repo) => !repo.featured);
     </div>
   </footer>
 </Base>
+
+<script>
+  import { markerOffsets, reachedMarkers, trackProgress } from '../scripts/motion/track-state.ts';
+
+  /*
+   * Linha do tempo: o traço cresce com a rolagem e cada marcador acende quando
+   * a linha chega nele.
+   *
+   * Os dois saem do MESMO número. Seriam duas animações independentes se cada
+   * marcador tivesse o próprio gatilho, e nesse caso qualquer ajuste de
+   * espaçamento os faria discordar sobre quando a linha "chegou". Aqui a linha
+   * é `--track-progress` e o marcador acende quando o progresso passa da
+   * posição dele — não há como dessincronizar.
+   */
+  const track = document.querySelector<HTMLElement>('#trajetoria .timeline');
+  const stops = track ? [...track.querySelectorAll<HTMLElement>('.timeline__entry')] : [];
+
+  if (track && stops.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    track.classList.add('is-tracking');
+
+    let offsets: number[] = [];
+    let first = 0;
+    let span = 0;
+    let scheduled = false;
+
+    const measure = () => {
+      // offsetTop do marcador é relativo ao <li>; somar o do <li> dá a posição
+      // dentro da lista, que é o sistema de coordenadas da linha.
+      const centers = stops.map((stop) => {
+        const dot = stop.querySelector<HTMLElement>('.timeline__dot');
+        return dot ? stop.offsetTop + dot.offsetTop + dot.offsetHeight / 2 : stop.offsetTop;
+      });
+
+      offsets = markerOffsets(centers);
+      first = centers[0] ?? 0;
+      span = (centers.at(-1) ?? 0) - first;
+
+      // A linha desenhada vai de centro a centro de marcador, e não de borda a
+      // borda da lista — é o que faz progresso 0 e 1 caírem exatamente sobre o
+      // primeiro e o último.
+      track.style.setProperty('--track-top', `${first}px`);
+      track.style.setProperty('--track-height', `${span}px`);
+    };
+
+    const update = () => {
+      scheduled = false;
+
+      const progress = trackProgress(
+        { top: track.getBoundingClientRect().top + first, height: span },
+        window.innerHeight,
+      );
+
+      track.style.setProperty('--track-progress', progress.toFixed(4));
+
+      reachedMarkers(progress, offsets).forEach((reached, index) => {
+        stops[index]?.classList.toggle('is-reached', reached);
+      });
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    };
+
+    measure();
+    update();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', () => {
+      measure();
+      schedule();
+    }, { passive: true });
+  }
+</script>
 
 <script>
   import { pileProgress, pileState } from '../scripts/motion/pile-state.ts';
@@ -736,17 +784,43 @@ const others = openSource.filter((repo) => !repo.featured);
   }
 
 
+  /*
+   * Cartão sobre a superfície invertida.
+   *
+   * Sem isto o cartão mantém o fundo `paperDeep` e herda o texto `paper` da
+   * seção — claro sobre claro, 1.13:1. Não era "pouco contraste": era
+   * invisível.
+   */
+  :global(.surface--inverted) .card {
+    color: var(--color-paper);
+    background-color: var(--color-ink-lift);
+    border-color: var(--color-line);
+    box-shadow: 2px 2px 0 color-mix(in srgb, var(--color-paper) 12%, transparent);
+  }
+
+  :global(.surface--inverted) .card a {
+    color: var(--color-paper);
+  }
+
   /* ---------- destaque de open source ---------- */
 
+  /*
+   * O destaque inverte de novo: cartão de papel sobre a seção de tinta.
+   *
+   * Antes ele tinha fundo `ink` — que era o fundo da seção também, então o
+   * destaque desaparecia dentro dela. Trocar a direção da inversão é o que o
+   * faz voltar a destacar.
+   */
   .featured {
     padding: var(--space-3);
-    color: var(--color-paper);
-    background-color: var(--color-ink);
+    color: var(--color-ink);
+    background-color: var(--color-paper);
+    border: 2px solid var(--color-accent);
     margin-block-end: var(--space-2);
   }
 
   .featured :global(.label) {
-    color: var(--color-line);
+    color: var(--color-ink-soft);
   }
 
   .featured__name {
@@ -754,7 +828,7 @@ const others = openSource.filter((repo) => !repo.featured);
   }
 
   .featured__name a {
-    color: var(--color-paper);
+    color: var(--color-accent-deep);
   }
 
   .featured__text {
@@ -786,29 +860,154 @@ const others = openSource.filter((repo) => !repo.featured);
     background-color: transparent;
   }
 
-  /* ---------- stack ---------- */
-
-  .stack {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .stack__group dd {
-    margin-inline-start: 0;
-  }
-
   /* ---------- trajetória ---------- */
 
+  /*
+   * Linha de rastreamento: um traço contínuo com um marcador por parada.
+   *
+   * Os marcadores são quadrados, não círculos. Rastreamento de entrega usa
+   * bolinha, mas o design system deste site não tem nada arredondado — e
+   * quadrado sobre linha é justamente o vocabulário de ponto de cota em desenho
+   * técnico, que é o conceito da página.
+   */
   .timeline {
-    display: grid;
-    gap: var(--space-3);
+    position: relative;
     padding: 0;
+    padding-inline-start: var(--space-3);
     list-style: none;
   }
 
+  /*
+   * Duas linhas sobrepostas: a base, fraca, mostra o percurso inteiro; a de
+   * cima, forte, cresce conforme você rola.
+   *
+   * `--track-top` e `--track-height` são escritos pelo driver e vão do centro
+   * do primeiro marcador ao centro do último — não das bordas da lista. É o que
+   * faz progresso 0 significar exatamente "no primeiro marcador" e 1 "no
+   * último", sem sobra em nenhuma ponta.
+   *
+   * O padrão de `--track-progress` é 1: sem JavaScript a linha aparece inteira,
+   * sólida, como estava antes.
+   */
+  .timeline::before,
+  .timeline::after {
+    content: '';
+    position: absolute;
+    inset-block-start: var(--track-top, 0.75rem);
+    inset-inline-start: 0.3125rem;
+    width: 1px;
+    height: var(--track-height, calc(100% - 1.5rem));
+  }
+
+  .timeline::before {
+    background-color: var(--color-line);
+  }
+
+  .timeline::after {
+    background-color: var(--color-line-strong);
+    transform-origin: top;
+    transform: scaleY(var(--track-progress, 1));
+  }
+
   .timeline__entry {
-    padding-inline-start: var(--space-2);
-    border-inline-start: 2px solid var(--color-line-strong);
+    position: relative;
+    padding-block-end: var(--space-3);
+  }
+
+  .timeline__entry:last-child {
+    padding-block-end: 0;
+  }
+
+  /* Estado de repouso = estado final. O driver é que introduz o estado inicial
+     apagado, sob `.is-tracking` — sem JS ou com movimento reduzido, tudo já
+     está no lugar certo. */
+  .timeline__dot {
+    position: absolute;
+    inset-block-start: 0.45rem;
+    inset-inline-start: calc(-1 * var(--space-3));
+    width: 0.625rem;
+    height: 0.625rem;
+    background-color: var(--color-paper);
+    border: 2px solid var(--color-line-strong);
+  }
+
+  .timeline__entry[data-current] .timeline__dot {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent-deep);
+  }
+
+  /* Linha de cota, do marcador até o conteúdo. */
+  .timeline__entry::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 0.72rem;
+    inset-inline-start: calc(-1 * var(--space-3) + 0.625rem);
+    width: calc(var(--space-3) - 0.625rem);
+    height: 1px;
+    background-color: var(--color-line-strong);
+    transform-origin: 0 50%;
+  }
+
+  /* ---------- estados animados, só sob o driver ---------- */
+
+  .timeline.is-tracking .timeline__dot {
+    border-color: var(--color-line);
+    transform: scale(0.6);
+    transition:
+      border-color 260ms ease-out,
+      transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .timeline.is-tracking .timeline__entry.is-reached .timeline__dot {
+    border-color: var(--color-line-strong);
+    transform: scale(1);
+  }
+
+  .timeline.is-tracking .timeline__entry::after {
+    transform: scaleX(0);
+    transition: transform 320ms ease-out 140ms;
+  }
+
+  .timeline.is-tracking .timeline__entry.is-reached::after {
+    transform: scaleX(1);
+  }
+
+  /* Cargos escalonados: a progressão dentro de uma empresa é justamente o que
+     aquelas três linhas contam. */
+  .timeline.is-tracking .timeline__roles li {
+    opacity: 0;
+    transform: translateX(-0.4rem);
+    transition:
+      opacity 300ms ease-out,
+      transform 300ms ease-out;
+  }
+
+  .timeline.is-tracking .timeline__roles li:nth-child(2) {
+    transition-delay: 90ms;
+  }
+
+  .timeline.is-tracking .timeline__roles li:nth-child(3) {
+    transition-delay: 180ms;
+  }
+
+  .timeline.is-tracking .timeline__entry.is-reached .timeline__roles li {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* A nota fecha a sequência, depois dos cargos. Ela ficava de fora e era a
+     única coisa da parada que aparecia sem transição nenhuma. */
+  .timeline.is-tracking .timeline__note {
+    opacity: 0;
+    transform: translateX(-0.4rem);
+    transition:
+      opacity 300ms ease-out 240ms,
+      transform 300ms ease-out 240ms;
+  }
+
+  .timeline.is-tracking .timeline__entry.is-reached .timeline__note {
+    opacity: 1;
+    transform: translateX(0);
   }
 
   .timeline__period {
@@ -841,6 +1040,29 @@ const others = openSource.filter((repo) => !repo.featured);
     font-size: var(--font-size-sm);
     color: var(--color-ink-soft);
     margin-block-start: var(--space-1);
+  }
+
+  /* ---------- formação ---------- */
+
+  /*
+   * Lista simples, como era antes da linha de rastreamento.
+   *
+   * A formação usava as mesmas classes da trajetória e herdou a linha sem que
+   * isso tivesse sido decidido. São coisas diferentes: a trajetória é um
+   * percurso com paradas, a formação é uma lista de dois itens concluídos.
+   * As classes internas continuam compartilhadas — muda o continente, não a
+   * tipografia.
+   */
+  .records {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .records__entry {
+    padding-inline-start: var(--space-2);
+    border-inline-start: 2px solid var(--color-line-strong);
   }
 
   /* ---------- rodapé ---------- */
@@ -933,16 +1155,56 @@ const others = openSource.filter((repo) => !repo.featured);
       grid-template-columns: repeat(2, 1fr);
     }
 
-    .stack {
-      grid-template-columns: repeat(2, 1fr);
-    }
 
-    .timeline__entry {
+    .records__entry {
       display: grid;
       grid-template-columns: 12rem 1fr;
       gap: 0 var(--space-2);
     }
 
+    /*
+     * No desktop a linha passa ENTRE as datas e o conteúdo, e não à esquerda de
+     * tudo. `--track-x` é a posição da linha; a coluna das datas termina antes
+     * dela e o conteúdo começa depois, com o marcador centrado em cima.
+     */
+    .timeline {
+      --track-x: 11rem;
+
+      padding-inline-start: 0;
+    }
+
+    /* As DUAS linhas, base e progresso. Mover só uma deixa a linha desenhada
+       num eixo e a apagada noutro. */
+    .timeline::before,
+    .timeline::after {
+      inset-inline-start: var(--track-x);
+    }
+
+    .timeline__entry {
+      display: grid;
+      grid-template-columns: 10.25rem 1fr;
+      column-gap: 1.5rem;
+      padding-inline-start: 0;
+    }
+
+    .timeline__dot {
+      /* Metade da largura do marcador (0.625rem) para a esquerda, para o centro
+         dele cair exatamente sobre a linha. */
+      inset-inline-start: calc(var(--track-x) - 0.3125rem);
+    }
+
+    .timeline__entry::after {
+      inset-inline-start: calc(var(--track-x) + 0.3125rem);
+      width: 0.5rem;
+    }
+
+    /* Datas encostadas na linha, como rótulo de cota. */
+    .timeline__period {
+      text-align: end;
+    }
+
+    /* O ::before é absoluto, então fica fora do fluxo do grid e continua
+       ancorado à linha. */
     .timeline__period {
       grid-row: 1 / span 3;
     }

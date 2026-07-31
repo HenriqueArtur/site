@@ -150,19 +150,6 @@ export const timeline: TimelineEntry[] = [
     ],
   },
   {
-    id: 'lme',
-    company: 'Laboratório de Mídias Educacionais — UFC',
-    start: '2020-10',
-    end: '2020-11',
-    roles: [
-      {
-        title: { 'pt-BR': 'Bolsista Frontend', en: 'Front-end Research Scholar' },
-        start: '2020-10',
-        end: '2020-11',
-      },
-    ],
-  },
-  {
     id: 'tgd',
     company: 'The Guardian Dog Studio',
     start: '2019-10',
@@ -203,32 +190,6 @@ export const timeline: TimelineEntry[] = [
         title: { 'pt-BR': 'Trainee', en: 'Trainee' },
         start: '2018-08',
         end: '2018-12',
-      },
-    ],
-  },
-  {
-    id: 'ufctv',
-    company: 'UFCTV',
-    start: '2018-04',
-    end: '2018-12',
-    roles: [
-      {
-        title: { 'pt-BR': 'Bolsista de Audiovisual', en: 'Audiovisual Scholar' },
-        start: '2018-04',
-        end: '2018-12',
-      },
-    ],
-  },
-  {
-    id: 'secretaria-smd',
-    company: 'Secretaria de Sistemas e Mídias Digitais — UFC',
-    start: '2018-02',
-    end: '2018-03',
-    roles: [
-      {
-        title: { 'pt-BR': 'Bolsista', en: 'Scholar' },
-        start: '2018-02',
-        end: '2018-03',
       },
     ],
   },

@@ -49,6 +49,11 @@ export function revealInView(
   }
 }
 
+/** Tira a marca de todos. Usado quando o efeito deixa de se aplicar. */
+export function clearCentered(elements: readonly Measurable[]): void {
+  for (const element of elements) element.classList.remove('is-centered');
+}
+
 /** Marca só o elemento mais centralizado, e devolve o índice dele. */
 export function markCentered(
   elements: readonly Measurable[],

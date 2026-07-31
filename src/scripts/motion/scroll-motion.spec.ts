@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { markCentered, revealInView, shouldRunFallback } from './scroll-motion.ts';
+import { clearCentered, markCentered, revealInView, shouldRunFallback } from './scroll-motion.ts';
 
 function fake(top: number, height = 200) {
   const classes = new Set<string>();
@@ -131,5 +131,28 @@ describe('markCentered', () => {
   it('devolve o índice marcado, ou null', () => {
     expect(markCentered([fake(300)], 800)).toBe(0);
     expect(markCentered([fake(5000)], 800)).toBeNull();
+  });
+});
+
+describe('clearCentered', () => {
+  it('tira a marca de todos os elementos', () => {
+    const a = fake(300);
+    const b = fake(700);
+    markCentered([a, b], 800);
+    expect(a.classes.has('is-centered')).toBe(true);
+
+    clearCentered([a, b]);
+
+    expect(a.classes.has('is-centered')).toBe(false);
+    expect(b.classes.has('is-centered')).toBe(false);
+  });
+
+  it('não quebra em elemento que nunca foi marcado', () => {
+    const a = fake(300);
+    expect(() => clearCentered([a])).not.toThrow();
+  });
+
+  it('aguenta lista vazia', () => {
+    expect(() => clearCentered([])).not.toThrow();
   });
 });

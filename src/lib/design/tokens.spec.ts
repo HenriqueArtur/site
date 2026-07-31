@@ -77,6 +77,20 @@ describe('contraste da superfície invertida', () => {
     });
   }
 
+  it('o texto do cartão sobre inkLift atinge 4.5:1', () => {
+    expect(contrastRatio(color.paper, color.inkLift)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('a borda do cartão sobre inkLift atinge 3:1', () => {
+    expect(contrastRatio(color.line, color.inkLift)).toBeGreaterThanOrEqual(3);
+  });
+
+  it('paperDeep sobre ink NÃO serve, que era o bug do cartão na seção invertida', () => {
+    // O cartão comum tem fundo `paperDeep` e, dentro da seção invertida, herdava
+    // texto `paper`. Este teste fixa por que `inkLift` precisou existir.
+    expect(contrastRatio(color.paper, color.paperDeep)).toBeLessThan(4.5);
+  });
+
   it('accent comum NÃO serve sobre ink, e é por isso que accentOnDark existe', () => {
     // Se um dia o accent passar aqui, os dois tokens viraram redundantes e a
     // decisão precisa ser revista.

@@ -21,7 +21,6 @@ export const sectionSurfaces = {
   impacto: 'grid',
   /** Cartões de projeto: pontilhado, mais leve que a grade. */
   projetos: 'dots',
-  stack: 'plain',
   /** Único bloco invertido da página. É o acento, e acento repetido não acentua. */
   'open-source': 'inverted',
   /** Linha do tempo sobre grade: cronologia desenhada em papel milimetrado. */

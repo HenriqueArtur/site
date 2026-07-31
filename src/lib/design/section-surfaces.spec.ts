@@ -41,12 +41,11 @@ describe('sectionSurfaces', () => {
     expect(invertidas).toHaveLength(1);
   });
 
-  it('cobre exatamente as oito seções da home, sem sobra nem falta', () => {
+  it('cobre exatamente as sete seções da home, sem sobra nem falta', () => {
     expect(ordem).toEqual([
       'sobre',
       'impacto',
       'projetos',
-      'stack',
       'open-source',
       'trajetoria',
       'formacao',

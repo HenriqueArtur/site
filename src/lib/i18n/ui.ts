@@ -43,10 +43,6 @@ export const ui = {
     en: 'Systems I helped bring into existence',
   },
 
-  stackLabel: { 'pt-BR': 'Stack', en: 'Stack' },
-  stackTitle: { 'pt-BR': 'Com o que eu trabalho', en: 'What I work with' },
-  stackPast: { 'pt-BR': 'Já trabalhei com', en: 'Previously worked with' },
-
   openSourceLabel: { 'pt-BR': 'Open source', en: 'Open source' },
   openSourceTitle: {
     'pt-BR': 'O que eu mantenho no aberto',
@@ -68,10 +64,6 @@ export const ui = {
   noteProjects: {
     'pt-BR': 'sistemas, não empregadores',
     en: 'systems, not employers',
-  },
-  noteStack: {
-    'pt-BR': 'o que uso hoje, separado do que já usei',
-    en: 'what I use today, kept apart from what I used to',
   },
   noteTimeline: {
     'pt-BR': 'a cronologia, para quem procura por ela',

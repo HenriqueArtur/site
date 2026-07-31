@@ -36,33 +36,14 @@ export const openSource: Repository[] = [
     },
   },
   {
-    id: 'type-engine',
-    name: 'TYPE',
-    href: 'https://github.com/HenriqueArtur/TYPE',
-    language: 'TypeScript',
+    id: 'max-elixir-pokeapi',
+    name: 'Max-Elixir-PokeAPI',
+    href: 'https://github.com/HenriqueArtur/Max-Elixir-PokeAPI',
+    language: 'Elixir',
     description: {
-      'pt-BR': 'Engine de jogos em TypeScript — TypeScript Yields Powerful Engines.',
-      en: 'A game engine in TypeScript — TypeScript Yields Powerful Engines.',
-    },
-  },
-  {
-    id: 'neo-gitmoji',
-    name: 'neo-gitmoji.nvim',
-    href: 'https://github.com/HenriqueArtur/neo-gitmoji.nvim',
-    language: 'Lua',
-    description: {
-      'pt-BR': 'Plugin de Gitmoji para Neovim, usando Telescope.',
-      en: 'A Gitmoji plugin for Neovim, built on Telescope.',
-    },
-  },
-  {
-    id: 'simple-firebase',
-    name: 'Simple-Firebase',
-    href: 'https://github.com/HenriqueArtur/Simple-Firebase',
-    language: 'TypeScript',
-    description: {
-      'pt-BR': 'Wrapper tipado que simplifica o SDK do Firebase.',
-      en: 'A typed wrapper that simplifies the Firebase SDK.',
+      'pt-BR':
+        'Wrapper de Elixir para a PokéAPI, com cache automático. Listado na documentação oficial da PokéAPI, entre as bibliotecas da comunidade.',
+      en: 'An Elixir wrapper for PokéAPI, with automatic caching. Listed in the official PokéAPI documentation among the community libraries.',
     },
   },
 ];

@@ -122,34 +122,47 @@ const detection = `
     <slot />
 
     <script>
-      import { markCentered, revealInView } from '../scripts/motion/scroll-motion.ts';
+      import {
+        clearCentered,
+        markCentered,
+        revealInView,
+      } from '../scripts/motion/scroll-motion.ts';
 
       const stillMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       // Duas responsabilidades independentes, com condições diferentes.
       //
       // A revelação é FALLBACK: só entra onde o CSS não sabe fazer sozinho.
-      // A marca de "mais centralizado" é o caminho ÚNICO onde não há cursor —
-      // ela precisa existir mesmo com timeline por scroll disponível, porque
-      // além de desenhar o círculo ela eleva o <li>, e isso o CSS não consegue
-      // fazer sozinho: o `transform` do cartão prende o SVG num contexto de
-      // empilhamento próprio.
+      //
+      // A marca de "mais centralizado" é o caminho único onde não há cursor, e
+      // exige TAMBÉM coluna única: numa grade de duas colunas, "o cartão mais
+      // central da tela" é um critério arbitrário — marca um dos dois da fileira
+      // e o círculo fica permanente sobre ele. Num tablet em paisagem isso
+      // aconteceria de verdade, não só na simulação de toque do navegador.
       const revealables = document.documentElement.classList.contains('js-motion')
         ? [...document.querySelectorAll<HTMLElement>('.reveal, .card-enter, .draw')]
         : [];
 
-      const markables =
-        !stillMotion && matchMedia('(hover: none)').matches
-          ? [...document.querySelectorAll<HTMLElement>('#projetos .cards--scattered > li')]
-          : [];
+      const projectCards = [
+        ...document.querySelectorAll<HTMLElement>('#projetos .cards--scattered > li'),
+      ];
+      const scrollDrawsCircle = matchMedia('(hover: none) and (max-width: 47.99rem)');
 
-      if (revealables.length > 0 || markables.length > 0) {
+      if (revealables.length > 0 || projectCards.length > 0) {
         let scheduled = false;
 
         const update = () => {
           scheduled = false;
+
           if (revealables.length > 0) revealInView(revealables, window.innerHeight);
-          if (markables.length > 0) markCentered(markables, window.innerHeight);
+
+          // Reavaliado a cada quadro: girar o tablet muda a resposta, e a marca
+          // precisa sair junto em vez de ficar presa no último cartão.
+          if (!stillMotion && scrollDrawsCircle.matches) {
+            markCentered(projectCards, window.innerHeight);
+          } else {
+            clearCentered(projectCards);
+          }
         };
 
         // Um frame por rolagem, no máximo: sem isto o handler roda dezenas de

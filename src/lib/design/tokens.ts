@@ -22,6 +22,14 @@ export const tokens = {
     ink: '#2A241C',
     /** Texto secundário, legendas, anotações. */
     inkSoft: '#5B5145',
+    /**
+     * Fundo de cartão sobre a superfície invertida.
+     *
+     * Existe porque o cartão comum usa `paperDeep` e herda a cor de texto clara
+     * da seção invertida — texto claro sobre fundo claro, 1.13:1. Um cartão
+     * sobre tinta precisa do próprio fundo escuro, e não do fundo de papel.
+     */
+    inkLift: '#332D24',
     /** Laranja de destaque. Para borda, ícone e preenchimento — não para texto. */
     accent: '#E2571E',
     /** Laranja escuro. Para texto e link sobre papel, onde 4.5:1 é obrigatório. */
