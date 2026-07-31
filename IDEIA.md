@@ -208,7 +208,42 @@ texto corrido no celular.
 Muita personalidade no título; o contraste alto da Instrument Serif some em telas
 pequenas, então ela funciona grande ou não funciona.
 
-### 3.4 Modelo 3D — **direção escolhida: um sistema se montando**
+### 3.4 Modelo 3D — **decidido: Smol Ame in an upcycled terrarium**
+
+Modelo escolhido por você:
+[Smol Ame in an upcycled terrarium](https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24),
+de **Seafoam**, sob **CC BY 4.0**. 53,5k triângulos, 27,5k vértices.
+
+Substitui a direção anterior ("um sistema se montando"), mantida abaixo como registro.
+
+**Obrigações e riscos, registrados:**
+
+- **Crédito é obrigatório.** A CC BY exige atribuição ao Seafoam, com link para o
+  original e menção à licença. Vai no rodapé da home.
+- **A licença cobre a modelagem, não a personagem.** Watson Amelia é IP da Cover Corp;
+  a CC BY do Seafoam não pode licenciar o que não é dele. As diretrizes de fan content
+  da Cover em geral permitem obra derivada não comercial, e um portfólio pessoal é uma
+  zona cinzenta por ser autopromoção. Decisão tomada com isso à vista.
+- **Peso.** É, com folga, o maior ativo do site — que hoje tem 32 KB de HTML e zero
+  arquivo JS baixado. Orçamento a respeitar: **abaixo de 1,5 MB** para o `.glb` depois
+  de compressão de malha e redução de textura. Acima disso, o modelo entra só em
+  conexão rápida ou não entra.
+- **Download manual.** A Sketchfab exige login, então o `.glb` precisa ser baixado por
+  você e colocado em `public/models/`.
+
+**Como será carregado** (regras que não mudam com a troca de modelo):
+
+- `import()` dinâmico dentro de `IntersectionObserver`; nada de three.js no carregamento
+  inicial.
+- **Desligado** sob `prefers-reduced-motion: reduce`, com fallback estático sempre
+  presente no HTML.
+- `<canvas>` decorativo: `aria-hidden`, fora da ordem de tabulação, nenhuma informação
+  exclusiva dele.
+- Pausa quando a aba perde visibilidade e quando sai do viewport.
+- Fallback também para ausência de WebGL e para tela pequena.
+
+<details>
+<summary>Direção anterior, substituída: um sistema se montando</summary>
 
 O objeto não é uma peça bonita girando: é **um sistema que se monta e se desmonta**. O
 movimento é o conteúdo. Duas formas dentro dessa direção, a decidir na fase 6:
@@ -288,6 +323,8 @@ licença compatível com uso comercial e menos de ~500KB depois de decimação.
   informação existe apenas nele.
 - Pausa quando a aba perde visibilidade, para não drenar bateria.
 - Fallback também para ausência de WebGL.
+
+</details>
 
 ---
 
@@ -687,7 +724,27 @@ tradução literal.
    puro passa raspando (4.57). Temas de sintaxe são desenhados para parecerem bonitos,
    não para atingirem contraste AA. O tema em `src/lib/design/code-theme.ts` sai da
    nossa paleta e é verificado pelo mesmo teste de contraste do resto do design system.
-6. **3D** — fallback SVG primeiro, three.js como camada por cima, com o modelo escolhido.
+6. ✅ **3D** — infraestrutura pronta; **falta o arquivo do modelo**.
+
+   O fallback SVG está sempre no HTML e é o que todo mundo recebe primeiro. O `<canvas>`
+   só aparece se o modelo carregar de verdade. Sem o `.glb`, o site funciona
+   normalmente e ninguém vê erro — ver `public/models/README.md`.
+
+   As decisões estão em módulos testados (`should-render-3d.ts`,
+   `animation-controller.ts`); só a cola com o three.js fica sem spec, declarada em
+   `ignore_files` da regra de spec-pair.
+
+   **O que o carregamento respeita:** `prefers-reduced-motion`, ausência de WebGL,
+   `saveData`, tela abaixo de 360px, saída do viewport e aba oculta.
+
+   **Custo medido:** 2,3 KB de script de entrada — que contém a decisão e mais nada — e
+   584 KB (145,6 KB em gzip) de three.js, buscados só depois de a decisão passar e de o
+   elemento estar à vista.
+
+   **Draco ficou de fora.** O `DRACOLoader` arrastava **817 KB** de decoder para o build
+   mesmo com o caminho apontando para um CDN — e o CDN contradizia a decisão de não fazer
+   requisição a terceiros. Se o modelo vier comprimido, o decoder entra auto-hospedado,
+   como escolha explícita.
 7. **Fechamento** — auditoria de acessibilidade, Lighthouse, SEO, metadados sociais.
 
 ---

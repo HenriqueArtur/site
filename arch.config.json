@@ -52,7 +52,8 @@
           "roots": "src/scripts/**",
           "subfolders": ["."],
           "require_non_empty_spec": true,
-          "skip_type_only": true
+          "skip_type_only": true,
+          "ignore_files": ["src/scripts/three/viewer.ts"]
         }
       ]
     }

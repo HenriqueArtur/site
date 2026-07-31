@@ -1,0 +1,158 @@
+---
+interface Props {
+  /** Texto alternativo do fallback. Decorativo por padrão. */
+  label?: string;
+}
+
+const { label } = Astro.props;
+const modelUrl = '/models/terrarium.glb';
+---
+
+<div class="terrarium" data-model={modelUrl}>
+  {/*
+    O fallback está sempre no HTML e é o que todo mundo recebe primeiro. O canvas
+    só aparece se o modelo carregar de verdade — quem tem reduced-motion, quem
+    pediu economia de dados, quem não tem WebGL e quem está numa tela minúscula
+    ficam com este desenho, que não é um erro nem um placeholder: é a versão
+    daquele ambiente.
+  */}
+  <svg
+    class="terrarium__fallback"
+    viewBox="0 0 200 200"
+    role={label ? 'img' : 'presentation'}
+    aria-label={label}
+    aria-hidden={label ? undefined : 'true'}
+  >
+    <g fill="none" stroke="currentColor" stroke-width="1.25">
+      <path d="M60 120 A40 40 0 0 1 140 120" />
+      <path d="M60 120 h80" />
+      <path d="M56 120 h88 v14 h-88 z" />
+      <path d="M64 134 h72 v10 h-72 z" />
+      <ellipse cx="100" cy="120" rx="40" ry="9" opacity="0.55" />
+      <path d="M100 80 v40" opacity="0.35" stroke-dasharray="3 4" />
+      <path d="M60 120 h-14" opacity="0.5" stroke-dasharray="3 4" />
+      <path d="M140 120 h14" opacity="0.5" stroke-dasharray="3 4" />
+      <path d="M86 112 q6 -14 14 -6 q8 -10 14 6" opacity="0.7" />
+    </g>
+  </svg>
+
+  <canvas class="terrarium__canvas" aria-hidden="true" tabindex="-1"></canvas>
+</div>
+
+<script>
+  import { shouldRender3d } from '../scripts/three/should-render-3d.ts';
+  import type { ViewerHandle } from '../scripts/three/viewer.ts';
+
+  function hasWebGL(): boolean {
+    try {
+      const probe = document.createElement('canvas');
+      return Boolean(probe.getContext('webgl2') ?? probe.getContext('webgl'));
+    } catch {
+      return false;
+    }
+  }
+
+  function saveDataEnabled(): boolean {
+    const connection = (navigator as { connection?: { saveData?: boolean } }).connection;
+    return connection?.saveData === true;
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.terrarium')) {
+    const canvas = root.querySelector('canvas');
+    const modelUrl = root.dataset.model;
+    if (!canvas || !modelUrl) continue;
+
+    const allowed = shouldRender3d({
+      reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+      hasWebGL: hasWebGL(),
+      viewportWidth: window.innerWidth,
+      saveData: saveDataEnabled(),
+    });
+
+    if (!allowed) continue;
+
+    let viewer: ViewerHandle | null = null;
+    let loading = false;
+
+    const visibility = new IntersectionObserver(async (entries) => {
+      const visible = entries.some((entry) => entry.isIntersecting);
+
+      if (!visible) {
+        viewer?.pause();
+        return;
+      }
+
+      if (viewer) {
+        viewer.resume();
+        return;
+      }
+
+      if (loading) return;
+      loading = true;
+
+      try {
+        // O three.js só entra na rede aqui: depois de a decisão ter sido tomada
+        // e de o elemento estar de fato à vista.
+        const { mountViewer } = await import('../scripts/three/viewer.ts');
+        viewer = await mountViewer({ canvas, modelUrl });
+        root.dataset.state = 'ready';
+      } catch {
+        // Modelo ausente, rede caída, GPU recusando o contexto: o fallback já
+        // está na tela e continua sendo a resposta certa. Nada a fazer.
+        visibility.disconnect();
+      } finally {
+        loading = false;
+      }
+    });
+
+    visibility.observe(root);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) viewer?.pause();
+      else viewer?.resume();
+    });
+  }
+</script>
+
+<style>
+  .terrarium {
+    position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 18rem;
+    color: var(--color-line-strong);
+  }
+
+  .terrarium__fallback,
+  .terrarium__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .terrarium__canvas {
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+
+  /* O canvas só aparece — e o desenho só sai — quando o modelo está de pé. */
+  .terrarium[data-state='ready'] .terrarium__canvas {
+    opacity: 1;
+  }
+
+  .terrarium[data-state='ready'] .terrarium__fallback {
+    opacity: 0;
+  }
+
+  .terrarium__fallback {
+    transition: opacity 400ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .terrarium__canvas,
+    .terrarium__fallback {
+      transition: none;
+    }
+  }
+</style>

@@ -12,6 +12,7 @@ import type { Locale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import Section from './Section.astro';
+import Terrarium from './Terrarium.astro';
 
 interface Props {
   locale: Locale;
@@ -43,20 +44,26 @@ const others = openSource.filter((repo) => !repo.featured);
         </div>
       </div>
 
-      <h1 class="hero__name">{profile.name}</h1>
-      <p class="hero__tagline">{profile.tagline[locale]}</p>
+      <div class="hero__body">
+        <div>
+          <h1 class="hero__name">{profile.name}</h1>
+          <p class="hero__tagline">{profile.tagline[locale]}</p>
 
-      <nav aria-label={ui.contactLinks[locale]}>
-        <ul class="hero__links">
-          {
-            profile.links.map((link) => (
-              <li>
-                <a href={link.href}>{link.label}</a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+          <nav aria-label={ui.contactLinks[locale]}>
+            <ul class="hero__links">
+              {
+                profile.links.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+        </div>
+
+        <Terrarium />
+      </div>
     </header>
 
     <main id="conteudo">
@@ -253,6 +260,12 @@ const others = openSource.filter((repo) => !repo.featured);
 
     <footer class="footer">
       <p class="label">© {profile.name}</p>
+      {/* Atribuição exigida pela CC BY 4.0 do modelo 3D. */}
+      <p class="label footer__credit">
+        3D: <a href="https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24">Smol Ame in an upcycled terrarium</a>
+        {' '}by Seafoam,{' '}
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+      </p>
     </footer>
   </div>
 </Base>
@@ -461,6 +474,26 @@ const others = openSource.filter((repo) => !repo.featured);
   .footer {
     padding-block: var(--space-4);
     border-block-start: 1px solid var(--color-line-strong);
+  }
+
+  .footer__credit {
+    margin-block-start: var(--space-1);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .hero__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 48rem) {
+    .hero__body {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
   }
 
   /* ---------- telas maiores ---------- */
