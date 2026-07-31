@@ -1,0 +1,10 @@
+# Push: os mesmos checks do commit, mais os testes unitários.
+# Usa mise quando disponível, porque bun e node são fixados por .mise.toml.
+if command -v mise >/dev/null 2>&1; then
+  run() { mise exec -- bun run "$@"; }
+else
+  run() { bun run "$@"; }
+fi
+
+run check || exit 1
+run test || exit 1

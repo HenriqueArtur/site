@@ -1,0 +1,82 @@
+{
+  "$schema": "./node_modules/archwarden/schema/v0.json",
+  "version": 0,
+  "ignore": ["dist/**", ".astro/**", "public/**"],
+  "modules": [
+    {
+      "id": "lib",
+      "rules": [
+        {
+          "type": "structure",
+          "id": "lib-allowed-folders",
+          "level": "error",
+          "roots": "src/lib",
+          "allowed_subfolders": ["posts", "i18n", "routes", "seo", "content"]
+        },
+        {
+          "type": "spec-pair",
+          "id": "lib-needs-spec",
+          "level": "error",
+          "roots": "src/lib/**",
+          "subfolders": ["."],
+          "require_non_empty_spec": true,
+          "skip_type_only": true
+        },
+        {
+          "type": "naming",
+          "id": "lib-export-name",
+          "level": "error",
+          "roots": "src/lib/*",
+          "file_pattern": "^(?<name>[a-z0-9]+(?:-[a-z0-9]+)*)\\.ts$",
+          "must_export": {
+            "kind": ["function", "arrow"],
+            "name": "{{camel(name)}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scripts",
+      "rules": [
+        {
+          "type": "structure",
+          "id": "scripts-allowed-folders",
+          "level": "error",
+          "roots": "src/scripts",
+          "allowed_subfolders": ["language", "three"]
+        },
+        {
+          "type": "spec-pair",
+          "id": "scripts-needs-spec",
+          "level": "error",
+          "roots": "src/scripts/**",
+          "subfolders": ["."],
+          "require_non_empty_spec": true,
+          "skip_type_only": true
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "type": "import-boundary",
+      "id": "lib-forbids-presentation",
+      "level": "error",
+      "from": "src/lib/**",
+      "forbid_import_from": [
+        "src/components/**",
+        "src/layouts/**",
+        "src/pages/**",
+        "src/scripts/**"
+      ]
+    },
+    {
+      "type": "no-passthrough",
+      "id": "no-barrel-files",
+      "level": "error",
+      "roots": "src/**",
+      "forms": ["reexport"],
+      "allow_package_entrypoints": false
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Commit: estilo, tipos e arquitetura.
+# Usa mise quando disponível, porque bun e node são fixados por .mise.toml.
+if command -v mise >/dev/null 2>&1; then
+  exec mise exec -- bun run check
+fi
+exec bun run check

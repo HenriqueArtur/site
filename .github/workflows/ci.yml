@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Coerente com a decisão de não ter rastreamento nenhum no projeto.
+  ASTRO_TELEMETRY_DISABLED: '1'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verificação
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Estilo (Biome)
+        run: bun run check:style
+
+      - name: Tipos (tsc)
+        run: bun run check:types
+
+      - name: Arquitetura (archwarden)
+        run: bun run check:arch
+
+      - name: Testes (Vitest)
+        run: bun run test
+
+      - name: Build (Astro)
+        run: bun run build
+
+      # O deploy só entra quando o GitHub Pages estiver configurado e o DNS apontado.
+      # Até lá, a variável de repositório PAGES_ENABLED não existe e este passo é pulado,
+      # para que o CI não falhe por causa de uma etapa que ainda não pode funcionar.
+      # Para ligar: Settings > Pages > Source = GitHub Actions, e
+      #   gh variable set PAGES_ENABLED --body true --repo HenriqueArtur/site
+      - name: Publicar artefato do site
+        if: vars.PAGES_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy no GitHub Pages
+    needs: verify
+    if: vars.PAGES_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

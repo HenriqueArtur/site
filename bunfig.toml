@@ -1,0 +1,3 @@
+[install]
+# Convenção do projeto: sempre versão exata, nunca "^" ou "~".
+exact = true

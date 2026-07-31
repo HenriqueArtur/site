@@ -1,0 +1,33 @@
+{
+  "name": "site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal site and blog — henriqueartur.com",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "fmt": "biome check --write .",
+    "check:style": "biome ci .",
+    "check:types": "astro sync && tsc --noEmit",
+    "check:arch": "archwarden check",
+    "check": "bun run check:style && bun run check:types && bun run check:arch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "bun run check && bun run test && bun run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "astro": "7.1.6",
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.6",
+    "@types/three": "0.185.1",
+    "archwarden": "0.5.1",
+    "husky": "9.1.7",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}
