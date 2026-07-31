@@ -89,13 +89,21 @@ const others = openSource.filter((repo) => !repo.featured);
         label={ui.impactLabel[locale]}
         title={ui.impactTitle[locale]}
       >
-        <ul class="cards tilt-list">
+        <ul class="cards cards--scattered">
           {
             impact.map((item) => (
-              <li class="card reveal">
-                {item.metric && <p class="card__metric">{item.metric[locale]}</p>}
-                <h3 class="card__title">{item.title[locale]}</h3>
-                <p class="card__text">{item.description[locale]}</p>
+              <li class="reveal">
+                {/*
+                  O cartão é um elemento interno de propósito: a revelação por
+                  scroll vive no <li> e o balanço do hover no <article>. Na mesma
+                  caixa, a propriedade `animation` de um sobrescreveria a do
+                  outro, e passar o mouse durante a entrada cortaria a entrada.
+                */}
+                <article class="card card--impact">
+                  {item.metric && <p class="card__metric">{item.metric[locale]}</p>}
+                  <h3 class="card__title">{item.title[locale]}</h3>
+                  <p class="card__text">{item.description[locale]}</p>
+                </article>
               </li>
             ))
           }
@@ -378,6 +386,114 @@ const others = openSource.filter((repo) => !repo.featured);
 
   .card__text {
     font-size: var(--font-size-sm);
+  }
+
+  /* ---------- impacto: cartões jogados na mesa ---------- */
+
+  .cards--scattered > li {
+    position: relative;
+  }
+
+  /*
+   * "Jogado" vem principalmente do deslocamento, não da rotação. Inclinar muito
+   * um bloco com três linhas de texto cansa a leitura; deslocar não. Por isso a
+   * rotação fica em torno de 1,5° e o resto do efeito vem do offset.
+   */
+  .cards--scattered .card {
+    transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+  }
+
+  .cards--scattered > li:nth-child(6n + 1) .card {
+    --tilt: -1.5deg;
+    --shift-x: -0.35rem;
+    --shift-y: 0.3rem;
+  }
+
+  .cards--scattered > li:nth-child(6n + 2) .card {
+    --tilt: 1.2deg;
+    --shift-x: 0.4rem;
+    --shift-y: -0.25rem;
+  }
+
+  .cards--scattered > li:nth-child(6n + 3) .card {
+    --tilt: 0.6deg;
+    --shift-x: -0.2rem;
+    --shift-y: -0.4rem;
+  }
+
+  .cards--scattered > li:nth-child(6n + 4) .card {
+    --tilt: -0.9deg;
+    --shift-x: 0.25rem;
+    --shift-y: 0.45rem;
+  }
+
+  .cards--scattered > li:nth-child(6n + 5) .card {
+    --tilt: 1.6deg;
+    --shift-x: -0.3rem;
+    --shift-y: -0.15rem;
+  }
+
+  .cards--scattered > li:nth-child(6n + 6) .card {
+    --tilt: -0.4deg;
+    --shift-x: 0.15rem;
+    --shift-y: 0.2rem;
+  }
+
+  /* Texto menor: o cartão de impacto é leitura de relance, não de fôlego. */
+  .card--impact .card__metric {
+    font-size: var(--font-size-xl);
+  }
+
+  .card--impact .card__title {
+    font-size: var(--font-size-base);
+  }
+
+  .card--impact .card__text {
+    font-size: var(--font-size-xs);
+    line-height: 1.55;
+  }
+
+  /* O cartão sob o cursor sobe na pilha, senão o vizinho o corta ao balançar. */
+  .cards--scattered > li:hover,
+  .cards--scattered > li:focus-within {
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cards--scattered > li:hover .card,
+    .cards--scattered > li:focus-within .card {
+      animation: card-nudge 620ms ease-in-out;
+    }
+  }
+
+  /*
+   * O balanço começa e termina na posição de repouso do próprio cartão — por
+   * isso os keyframes leem as mesmas variáveis. Terminar em outro lugar faria o
+   * cartão saltar de volta ao tirar o mouse.
+   */
+  @keyframes card-nudge {
+    0% {
+      transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+    }
+
+    30% {
+      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.5rem))
+        rotate(calc(var(--tilt, 0deg) + 1.6deg));
+    }
+
+    60% {
+      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.2rem))
+        rotate(calc(var(--tilt, 0deg) - 1.1deg));
+    }
+
+    85% {
+      transform: translate(var(--shift-x, 0), calc(var(--shift-y, 0px) - 0.05rem))
+        rotate(calc(var(--tilt, 0deg) + 0.4deg));
+    }
+
+    100% {
+      transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotate(var(--tilt, 0deg));
+    }
   }
 
   /* ---------- destaque de open source ---------- */
