@@ -53,7 +53,7 @@ const title = `${ui.postsInYear[locale]} ${year.year}`;
                 {monthName(month.month, locale)}
               </a>
             </h2>
-            <PostList posts={month.posts} locale={locale} />
+            <PostList posts={month.posts} locale={locale} level={3} />
           </section>
         ))
       }

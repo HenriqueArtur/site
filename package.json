@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Personal site and blog — henriqueartur.com",
+  "description": "Personal site and blog \u2014 henriqueartur.com",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -15,6 +15,7 @@
     "check": "bun run check:style && bun run check:types && bun run check:arch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "audit:a11y": "astro build && bun tools/audit-a11y.mjs",
     "verify": "bun run check && bun run test && bun run build",
     "prepare": "husky"
   },

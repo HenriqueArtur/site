@@ -1,14 +1,24 @@
 ---
 import { formatPeriod } from '../lib/i18n/format-period.ts';
 import type { Locale } from '../lib/i18n/locales.ts';
+import { headingLevel, type Level } from '../lib/posts/heading-level.ts';
 import type { Post } from '../lib/posts/select-posts.ts';
 
 interface Props {
   posts: Post[];
   locale: Locale;
+  /**
+   * Nível do título de cada post.
+   *
+   * Obrigatório porque esta lista aparece sob aninhamentos diferentes, e só
+   * quem a coloca na página sabe qual nível vem logo acima.
+   */
+  level: Level;
 }
 
-const { posts, locale } = Astro.props;
+const { posts, locale, level } = Astro.props;
+
+const Title = headingLevel(level);
 
 const pad = (value: number) => String(value).padStart(2, '0');
 ---
@@ -22,9 +32,9 @@ const pad = (value: number) => String(value).padStart(2, '0');
             {pad(post.day)} · {formatPeriod(`${post.year}-${pad(post.month)}`, null, locale).split(' —')[0]}
           </time>
         </p>
-        <h4 class="posts__title">
+        <Title class="posts__title">
           <a href={post.path}>{post.title}</a>
-        </h4>
+        </Title>
         <p class="posts__description">{post.description}</p>
       </li>
     ))
