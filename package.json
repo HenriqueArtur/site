@@ -8,6 +8,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "preview:pages": "astro build && bun tools/serve-pages.mjs",
     "fmt": "biome check --write .",
     "check:style": "biome ci --error-on-warnings .",
     "check:types": "astro sync && tsc --noEmit",
