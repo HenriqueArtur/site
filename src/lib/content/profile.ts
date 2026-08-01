@@ -22,10 +22,18 @@ export const profile = {
 
   email: 'contato@henriqueartur.com',
 
+  /**
+   * Assinatura usada nas redes do Henrique.
+   *
+   * Fica em inglês nos dois idiomas de propósito: são três palavras que
+   * funcionam como carimbo, não como frase a ser lida. Traduzir quebraria o
+   * reconhecimento de quem já a viu em outro lugar.
+   */
+  signature: 'Software, Quality and Experience',
+
   tagline: {
-    'pt-BR':
-      'Construo sistemas que resolvem o problema certo — com arquitetura, qualidade e atenção a quem usa.',
-    en: 'I build systems that solve the right problem — with architecture, quality, and care for the people using them.',
+    'pt-BR': 'Construindo melhores softwares e criando ótimas experiências',
+    en: 'Building better software and creating great experiences',
   } satisfies Localized,
 
   summary: [

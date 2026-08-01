@@ -120,7 +120,17 @@ const { id, number, label, title, surface, note } = Astro.props;
     border-block-start: 1px solid var(--color-line-strong);
   }
 
+  /*
+   * O conteúdo da seção fica acima do objeto 3D, que invade o topo do "Sobre".
+   *
+   * O objeto precisa de z-index positivo para aparecer sobre o FUNDO desta
+   * seção — que pinta depois dele, por ordem do DOM. Sem este degrau, ele
+   * também cobre o TEXTO. Mesmo arranjo do hero: conteúdo acima, objeto no
+   * meio, fundo embaixo.
+   */
   .shell {
+    position: relative;
+    z-index: 2;
     max-width: var(--layout-max-width);
     padding-inline: var(--space-2);
     margin-inline: auto;

@@ -46,8 +46,9 @@ const others = openSource.filter((repo) => !repo.featured);
       </div>
 
       <div class="hero__body">
-        <div>
+        <div class="hero__text">
           <h1 class="hero__name">{profile.name}</h1>
+          <p class="label hero__signature">{profile.signature}</p>
           <p class="hero__tagline">{profile.tagline[locale]}</p>
 
           <nav aria-label={ui.contactLinks[locale]}>
@@ -63,7 +64,16 @@ const others = openSource.filter((repo) => !repo.featured);
           </nav>
         </div>
 
-        <Terrarium />
+        <div class="hero__aside">
+          <Terrarium />
+          {/*
+            Espaçador que dá alcance ao sticky.
+            `padding` NÃO serve aqui: um elemento grudado se move dentro da
+            content box do pai, e padding fica fora dela. Só conteúdo de verdade
+            estende esse limite.
+          */}
+          <div class="hero__reach" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </header>
@@ -284,7 +294,11 @@ const others = openSource.filter((repo) => !repo.featured);
 
   <footer class="footer surface surface--plain">
     <div class="shell">
-      <p class="label">© {profile.name}</p>
+      <p class="label footer__signature">
+        © {profile.name}
+        <span class="footer__mark" aria-hidden="true">·</span>
+        {profile.signature}
+      </p>
       {/* Atribuição exigida pela CC BY 4.0 do modelo 3D. */}
       <p class="label footer__credit">
         3D: <Link href="https://sketchfab.com/3d-models/smol-ame-in-an-upcycled-terrarium-hololiveen-490cecc249d242188fda5ad3160a4b24" locale={locale}>Smol Ame in an upcycled terrarium</Link>
@@ -361,6 +375,94 @@ const others = openSource.filter((repo) => !repo.featured);
 
     measure();
     update();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', () => {
+      measure();
+      schedule();
+    }, { passive: true });
+  }
+</script>
+
+<script>
+  import { driftProgress } from '../scripts/motion/drift-progress.ts';
+  import { stickyRange } from '../scripts/motion/sticky-range.ts';
+
+  /*
+   * Alcance do objeto grudado: ele acompanha até o "Sobre" começar a sair.
+   *
+   * `position: sticky` só se move dentro do bloco que contém o elemento, então
+   * o alcance precisa ser criado com padding. Medir em vez de cravar um valor
+   * porque a altura do "Sobre" depende do texto, que muda entre os idiomas.
+   */
+  const aside = document.querySelector<HTMLElement>('.hero__aside');
+  const about = document.querySelector<HTMLElement>('#sobre');
+
+  if (aside && about) {
+    const measure = () => {
+      // Sem o alcance atual na conta, a medição da vez anterior contaminaria a
+      // próxima e o valor cresceria a cada resize.
+      aside.style.removeProperty('--sticky-range');
+
+      const scroll = window.scrollY;
+      const box = aside.getBoundingClientRect();
+      const target = about.getBoundingClientRect();
+
+      // A altura contada é a do objeto, não a do aside: o aside já inclui o
+      // espaçador, e usá-lo realimentaria a conta a cada medição.
+      const object = aside.firstElementChild?.getBoundingClientRect();
+
+      const range = stickyRange({
+        boxTop: box.top + scroll,
+        boxHeight: object?.height ?? box.height,
+        sectionBottom: target.bottom + scroll,
+        // Folga em fração da janela, e não em pixels: numa tela alta o objeto
+        // precisa percorrer mais para dar a mesma sensação de demorar a soltar.
+        extra: window.innerHeight * 0.4,
+      });
+
+      aside.style.setProperty('--sticky-range', `${Math.round(range)}px`);
+    };
+
+    /*
+     * Enquanto está grudado, o objeto passa por cima do texto do "Sobre" — ele
+     * é o único elemento parado enquanto tudo sobe. O deslocamento para a
+     * direita devolve a coluna de leitura, e o objeto continua presente pela
+     * borda.
+     *
+     * Só no desktop: no mobile ele fica acima do texto, sem sobreposição.
+     */
+    const sideBySide = matchMedia('(min-width: 48rem)');
+    const stuckAt = 5 * 16;
+
+    let scheduled = false;
+
+    const drift = () => {
+      scheduled = false;
+
+      if (!sideBySide.matches) {
+        aside.style.removeProperty('--drift');
+        return;
+      }
+
+      const progress = driftProgress({
+        boxTop: aside.getBoundingClientRect().top,
+        stickyTop: stuckAt,
+        // Rampa em fração da janela: numa tela alta o deslocamento precisa de
+        // mais rolagem para não parecer um salto.
+        ramp: window.innerHeight * 0.32,
+      });
+
+      aside.style.setProperty('--drift', progress.toFixed(4));
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(drift);
+    };
+
+    measure();
+    drift();
     addEventListener('scroll', schedule, { passive: true });
     addEventListener('resize', () => {
       measure();
@@ -484,6 +586,31 @@ const others = openSource.filter((repo) => !repo.featured);
     margin: 0;
   }
 
+  /*
+   * O alcance é medido em JS: vai até o fim do "Sobre", cuja altura depende do
+   * texto — e o texto muda de tamanho entre português e inglês. O padrão só
+   * vale até a medição acontecer.
+   */
+  .hero__reach {
+    block-size: var(--sticky-range, 20rem);
+  }
+
+  /*
+   * O texto fica acima do objeto 3D.
+   *
+   * O objeto precisa de z-index positivo para invadir a seção seguinte — sem
+   * ele, o fundo da próxima seção pinta por cima. Mas isso também o colocava
+   * acima do texto do hero. A saída é o texto ter um degrau a mais: texto (2),
+   * objeto (1), fundos das seções (automático).
+   */
+  .hero__text {
+    position: relative;
+    z-index: 2;
+    /* Base de 20rem para a coluna não ser espremida pelo objeto ao lado. */
+    flex: 1 1 20rem;
+    min-width: 0;
+  }
+
   .hero__nav {
     display: flex;
     gap: var(--space-2);
@@ -491,13 +618,48 @@ const others = openSource.filter((repo) => !repo.featured);
   }
 
   .hero__name {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-hero);
+    /* Entrelinha apertada e letras próximas: num nome grande, o espaçamento
+       padrão de leitura o faz parecer solto em vez de sólido. */
+    line-height: 1.02;
+    letter-spacing: -0.03em;
     margin-block-end: var(--space-2);
   }
 
+  /*
+   * A assinatura é etiqueta, não linha de prosa: monoespaçada, em caixa alta,
+   * com um traço de cota antes. É o que a impede de virar mais uma frase entre
+   * o nome e a tagline.
+   */
+  .hero__signature {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-block-end: var(--space-2);
+    color: var(--color-accent-deep);
+  }
+
+  .hero__signature::before {
+    content: '';
+    flex: 0 0 var(--space-3);
+    height: 1px;
+    background-color: var(--color-accent-deep);
+  }
+
+  .footer__signature {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+  }
+
+  .footer__mark {
+    color: var(--color-line-strong);
+  }
+
   .hero__tagline {
-    max-width: 40ch;
-    font-size: var(--font-size-lg);
+    max-width: 26ch;
+    font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+    line-height: 1.35;
     color: var(--color-ink-soft);
     margin-block-end: var(--space-3);
   }
@@ -1116,8 +1278,32 @@ const others = openSource.filter((repo) => !repo.featured);
   @media (min-width: 48rem) {
     .hero__body {
       flex-direction: row;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
+    }
+
+    /*
+     * A caixa que segura o objeto se estende para dentro da seção seguinte.
+     *
+     * `position: sticky` só se move dentro do bloco que contém o elemento. Sem
+     * esse alongamento, o objeto descolaria assim que o hero saísse da tela —
+     * que é justamente o momento em que ele deveria ficar parado.
+     *
+     * O padding cria o alcance; a margem negativa de mesmo valor cancela o
+     * efeito no layout, então nada abaixo é empurrado.
+     */
+    .hero__aside {
+      /*
+       * O tamanho vive AQUI, não no .terrarium. Envolver o objeto fez do aside
+       * o item flex — e sem regra de flex ele encolhe, levando junto qualquer
+       * largura percentual que o filho declare, porque a porcentagem passa a
+       * valer contra a caixa encolhida.
+       */
+      flex: 0 0 auto;
+      width: 48rem;
+      max-width: 64%;
+      /* A margem negativa cancela o espaçador, para nada abaixo ser empurrado. */
+      margin-block-end: calc(-1 * var(--sticky-range, 20rem));
     }
   }
 
@@ -1166,14 +1352,6 @@ const others = openSource.filter((repo) => !repo.featured);
 
     .hero {
       padding-block: var(--space-6) var(--space-8);
-    }
-
-    .hero__name {
-      font-size: var(--font-size-4xl);
-    }
-
-    .hero__tagline {
-      font-size: var(--font-size-xl);
     }
 
     .cards {

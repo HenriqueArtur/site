@@ -51,7 +51,13 @@ const labelFor: Record<Locale, string> = {
     list-style: none;
   }
 
+  /*
+   * Sem o marca-texto do hover: ele é para link de conteúdo, e isto é um
+   * controle — tem moldura, estado ativo e fundo próprio. A marca por baixo
+   * disso vira sujeira, não destaque.
+   */
   .lang__link {
+    background-image: none;
     display: inline-block;
     /* 24px de alvo de toque, mínimo da WCAG 2.2. */
     min-height: 1.5rem;

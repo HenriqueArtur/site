@@ -264,7 +264,9 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* Também é controle, e já tem fundo sólido próprio. */
 .skip-link {
+  background-image: none;
   position: absolute;
   inset-inline-start: -9999px;
   z-index: 100;

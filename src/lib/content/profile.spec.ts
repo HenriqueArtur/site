@@ -20,6 +20,13 @@ describe('profile', () => {
     }
   });
 
+  it('mantém a assinatura em inglês, sem versão traduzida', () => {
+    // É carimbo, não frase: três palavras que identificam. Se um dia virar um
+    // objeto Localized, esta expectativa avisa que a decisão mudou.
+    expect(profile.signature).toBe('Software, Quality and Experience');
+    expect(typeof profile.signature).toBe('string');
+  });
+
   it('usa o e-mail do próprio domínio', () => {
     expect(profile.email).toBe('contato@henriqueartur.com');
   });

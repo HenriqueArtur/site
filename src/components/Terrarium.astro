@@ -115,11 +115,31 @@ const modelUrl = '/models/terrarium.glb';
 </script>
 
 <style>
+  /*
+   * MOBILE — sangria de borda a borda.
+   *
+   * Em coluna única, um objeto contido pela margem fica pequeno demais para
+   * justificar o que custa baixar. Sangrando, ele vira o elemento visual do
+   * topo. As margens negativas cancelam o padding do `.shell`.
+   *
+   * Proporção 5/4 e não quadrada: quadrado em largura total ocuparia uma tela
+   * inteira de altura e empurraria todo o conteúdo para fora.
+   *
+   * O objeto passa por cima da seção seguinte — daí o z-index. Sem ele, o
+   * fundo da próxima seção pintaria por cima.
+   */
   .terrarium {
     position: relative;
-    aspect-ratio: 1;
-    width: 100%;
-    max-width: 18rem;
+    /*
+     * 1, e não 2: precisa ficar acima do fundo das seções seguintes — que
+     * pintam depois, por ordem do DOM — e abaixo do texto do hero, que sobe
+     * para 2 justamente por isso.
+     */
+    z-index: 1;
+    aspect-ratio: 9 / 8;
+    width: calc(100% + var(--space-2) * 2);
+    margin-inline: calc(-1 * var(--space-2));
+    margin-block-end: -4rem;
     color: var(--color-line-strong);
   }
 
@@ -147,6 +167,35 @@ const modelUrl = '/models/terrarium.glb';
 
   .terrarium__fallback {
     transition: opacity 400ms ease;
+  }
+
+  @media (min-width: 48rem) {
+    /*
+     * No desktop ele volta a ser contido, mas grande: quase o dobro do que era.
+     * A margem negativa deixa a base invadir a seção seguinte, para o objeto
+     * não parecer preso dentro do hero.
+     */
+    .terrarium {
+      /* Fica parado enquanto o hero e o começo do Sobre passam por baixo. O
+         alcance vem de `.hero__aside`, em Home.astro. */
+      position: sticky;
+      inset-block-start: 5rem;
+      aspect-ratio: 1;
+      width: 100%;
+      max-width: none;
+      margin-inline: 0;
+      /* Sobe acima do topo do texto: alinhado, o objeto fica visualmente baixo
+         em relação ao hero, porque a coluna de texto começa mais acima. */
+      margin-block-start: -11rem;
+      /*
+       * `--drift` vai de 0 a 1 conforme o objeto fica parado e o texto sobe por
+       * baixo dele. 9rem é o quanto ele sai para a direita no fim — o bastante
+       * para liberar a coluna de leitura sem sumir da tela.
+       */
+      transform: translateX(calc(var(--drift, 0) * 9rem));
+      transition: transform 120ms linear;
+      margin-block-end: -10rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

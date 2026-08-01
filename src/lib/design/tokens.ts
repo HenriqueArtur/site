@@ -63,6 +63,14 @@ export const tokens = {
     '2xl': '1.875rem',
     '3xl': '2.375rem',
     '4xl': '3rem',
+    /**
+     * Só o nome no hero.
+     *
+     * Fluido, e não um degrau fixo da escala: ele divide a linha com o objeto
+     * 3D, então a largura disponível muda muito entre um notebook e um monitor
+     * grande. Um tamanho fixo fica tímido num e estoura no outro.
+     */
+    hero: 'clamp(2.75rem, 6vw, 4.5rem)',
   },
 
   lineHeight: {
