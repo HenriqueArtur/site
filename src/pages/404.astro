@@ -44,19 +44,43 @@ const locale = defaultLocale;
 
 <style>
   .shell {
+    /* As três primeiras são o mesmo contrato de largura das outras páginas.
+       `.shell` é escopado por página, então aqui elas precisam ser repetidas —
+       substituí-las por conta do flex foi o que jogou o conteúdo contra a
+       borda esquerda. */
+    max-width: var(--layout-max-width);
+    padding-inline: var(--space-2);
+    margin-inline: auto;
+
+    /* A coluna ocupa a janela toda para o conteúdo poder centrar no que sobra. */
     display: flex;
     min-block-size: 100dvh;
     flex-direction: column;
   }
 
+  /* Mesmo cabeçalho das outras páginas. Repetido pelo mesmo motivo de `.shell`:
+     estilo do Astro é escopado por arquivo, então a classe sozinha não traz
+     regra nenhuma de outra página. */
+  .head {
+    padding-block: var(--space-4);
+  }
+
+  .head__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .missing {
-    /* Centrado no que sobra da altura, sem depender de altura fixa: o texto
-       cresce com o zoom e a caixa acompanha em vez de cortar. */
+    /* Centrado no que sobra da altura, sem altura fixa: o texto cresce com o
+       zoom e a caixa acompanha em vez de cortar. */
     display: flex;
     flex: 1;
     flex-direction: column;
     justify-content: center;
-    padding-block: var(--space-5);
+    padding-block: var(--space-6);
   }
 
   .missing__code {
