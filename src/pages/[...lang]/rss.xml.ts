@@ -4,9 +4,14 @@ import { profile } from '../../lib/content/profile.ts';
 import { type Locale, locales } from '../../lib/i18n/locales.ts';
 import { ui } from '../../lib/i18n/ui.ts';
 import { type Post, selectPosts } from '../../lib/posts/select-posts.ts';
+import { blogVisible } from '../../lib/routes/blog-visible.ts';
 import { rssFeed } from '../../lib/seo/rss-feed.ts';
 
 export async function getStaticPaths() {
+  // Enquanto o blog não está publicado, nenhuma rota dele é gerada — nem a
+  // página, nem o feed. Ver blog-visible.ts.
+  if (!blogVisible(import.meta.env.DEV)) return [];
+
   const entries = await getCollection('blog');
 
   return locales.map((locale) => ({

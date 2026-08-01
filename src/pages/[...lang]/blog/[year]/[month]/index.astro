@@ -8,9 +8,14 @@ import { monthName } from '../../../../../lib/i18n/month-name.ts';
 import { ui } from '../../../../../lib/i18n/ui.ts';
 import { groupPosts } from '../../../../../lib/posts/group-posts.ts';
 import { selectPosts } from '../../../../../lib/posts/select-posts.ts';
+import { blogVisible } from '../../../../../lib/routes/blog-visible.ts';
 import { breadcrumbList } from '../../../../../lib/seo/breadcrumb-list.ts';
 
 export async function getStaticPaths() {
+  // Enquanto o blog não está publicado, nenhuma rota dele é gerada — nem a
+  // página, nem o feed. Ver blog-visible.ts.
+  if (!blogVisible(import.meta.env.DEV)) return [];
+
   const entries = await getCollection('blog');
   const paths = [];
 

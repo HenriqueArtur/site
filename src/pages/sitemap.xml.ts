@@ -3,6 +3,7 @@ import type { APIContext } from 'astro';
 import { locales } from '../lib/i18n/locales.ts';
 import { groupPosts } from '../lib/posts/group-posts.ts';
 import { selectPosts } from '../lib/posts/select-posts.ts';
+import { blogVisible } from '../lib/routes/blog-visible.ts';
 import { type SitemapUrl, sitemapXml } from '../lib/seo/sitemap-xml.ts';
 
 export async function GET(context: APIContext) {
@@ -35,7 +36,13 @@ export async function GET(context: APIContext) {
      * rastreador que percebe lastmod mentiroso passa a ignorar o campo no site
      * inteiro — inclusive onde ele é verdadeiro.
      */
-    urls.push({ path: `${prefix}/` }, { path: `${prefix}/blog/`, lastModified: newest(posts) });
+    urls.push({ path: `${prefix}/` });
+
+    // Sitemap prometendo URL que responde 404 é pior que sitemap curto: o
+    // rastreador registra o erro e passa a confiar menos no arquivo inteiro.
+    if (!blogVisible(import.meta.env.DEV)) continue;
+
+    urls.push({ path: `${prefix}/blog/`, lastModified: newest(posts) });
 
     for (const year of groupPosts(posts)) {
       const yearPosts = year.months.flatMap((month) => month.posts);

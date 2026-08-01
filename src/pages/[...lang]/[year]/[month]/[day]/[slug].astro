@@ -8,6 +8,7 @@ import { monthName } from '../../../../../lib/i18n/month-name.ts';
 import { ui } from '../../../../../lib/i18n/ui.ts';
 import { missingTranslations } from '../../../../../lib/posts/missing-translations.ts';
 import { type Post, selectPosts } from '../../../../../lib/posts/select-posts.ts';
+import { blogVisible } from '../../../../../lib/routes/blog-visible.ts';
 import { articleSchema } from '../../../../../lib/seo/article-schema.ts';
 import { breadcrumbList } from '../../../../../lib/seo/breadcrumb-list.ts';
 import { ogImage } from '../../../../../lib/seo/og-image.ts';
@@ -15,6 +16,10 @@ import { ogImage } from '../../../../../lib/seo/og-image.ts';
 const pad = (value: number) => String(value).padStart(2, '0');
 
 export async function getStaticPaths() {
+  // Enquanto o blog não está publicado, nenhuma rota dele é gerada — nem a
+  // página, nem o feed. Ver blog-visible.ts.
+  if (!blogVisible(import.meta.env.DEV)) return [];
+
   // Estas funções vivem aqui dentro de propósito: o Astro iça getStaticPaths
   // para um módulo separado, então ela não enxerga nada do escopo do componente.
   const padSegment = (value: number) => String(value).padStart(2, '0');

@@ -11,6 +11,7 @@ import { formatPeriod } from '../lib/i18n/format-period.ts';
 import { localePath } from '../lib/i18n/locale-path.ts';
 import type { Locale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import { blogVisible } from '../lib/routes/blog-visible.ts';
 import { profilePage } from '../lib/seo/profile-page.ts';
 import BackToTop from './BackToTop.astro';
 import LanguageSwitcher from './LanguageSwitcher.astro';
@@ -29,6 +30,9 @@ const { pathname } = Astro.url;
 const site = Astro.site?.href ?? 'https://henriqueartur.com';
 const url = new URL(localePath(pathname, locale), site).href;
 
+// Ver blog-visible.ts: enquanto não houver conteúdo, o blog não é anunciado.
+const temBlog = blogVisible(import.meta.env.DEV);
+
 const featured = openSource.find((repo) => repo.featured);
 const others = openSource.filter((repo) => !repo.featured);
 ---
@@ -46,9 +50,13 @@ const others = openSource.filter((repo) => !repo.featured);
           {profile.role[locale]} · {profile.location[locale]}
         </p>
         <div class="hero__nav">
-          <p class="label hero__blog">
-            <a href={locale === 'en' ? '/en/blog/' : '/blog/'}>{ui.blogLabel[locale]}</a>
-          </p>
+          {
+            temBlog && (
+              <p class="label hero__blog">
+                <a href={locale === 'en' ? '/en/blog/' : '/blog/'}>{ui.blogLabel[locale]}</a>
+              </p>
+            )
+          }
           <LanguageSwitcher locale={locale} pathname={pathname} />
         </div>
       </div>

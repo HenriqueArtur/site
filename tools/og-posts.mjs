@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { tokens } from '../src/lib/design/tokens.ts';
+import { blogVisible } from '../src/lib/routes/blog-visible.ts';
 import { ogImage } from '../src/lib/seo/og-image.ts';
 import { loadFont, textPath, textWidth, wrapText } from './ttf-text.mjs';
 
@@ -193,6 +194,17 @@ function postSvg(fonts, { title, date, locale }) {
  * @returns {Promise<number>} quantas foram geradas
  */
 export async function buildOgPosts(outDir) {
+  /*
+   * Sem blog publicado não há página apontando para estas imagens, e gerá-las
+   * seria despejar binário no dist/ que ninguém referencia.
+   *
+   * O `false` é literal e correto: `astro:build:done` só dispara em `astro
+   * build`, então este código nunca roda em desenvolvimento. Quando o blog for
+   * publicado, `blogVisible` passa a devolver true dos dois lados e as imagens
+   * voltam sozinhas. Ver src/lib/routes/blog-visible.ts.
+   */
+  if (!blogVisible(false)) return 0;
+
   const fonts = {
     bold: loadFont(await readFile(join(FONTS, 'ZillaSlab-Bold.ttf'))),
     regular: loadFont(await readFile(join(FONTS, 'ZillaSlab-Regular.ttf'))),
@@ -228,7 +240,11 @@ export function ogPosts() {
     hooks: {
       'astro:build:done': async ({ dir, logger }) => {
         const count = await buildOgPosts(fileURLToPath(dir));
-        logger.info(`${count} imagens de compartilhamento geradas em og/`);
+        logger.info(
+          count > 0
+            ? `${count} imagens de compartilhamento geradas em og/`
+            : 'blog não publicado — nenhuma imagem de compartilhamento gerada',
+        );
       },
     },
   };

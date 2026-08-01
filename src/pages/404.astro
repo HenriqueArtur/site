@@ -3,6 +3,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import Base from '../layouts/Base.astro';
 import { defaultLocale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import { blogVisible } from '../lib/routes/blog-visible.ts';
 
 /*
  * Uma página só, no idioma padrão.
@@ -16,6 +17,9 @@ import { ui } from '../lib/i18n/ui.ts';
  * nome do site — parece que o domínio quebrou.
  */
 const locale = defaultLocale;
+
+// Oferecer saída para uma página que não existe seria um segundo beco.
+const temBlog = blogVisible(import.meta.env.DEV);
 ---
 
 <Base title={`${ui.notFoundTitle[locale]} — Henrique Artur`} description={ui.notFoundBody[locale]} locale={locale}>
@@ -36,7 +40,7 @@ const locale = defaultLocale;
 
       <nav class="missing__links" aria-label={ui.notFoundTitle[locale]}>
         <a href="/">{ui.notFoundHome[locale]}</a>
-        <a href="/blog/">{ui.notFoundBlog[locale]}</a>
+        {temBlog && <a href="/blog/">{ui.notFoundBlog[locale]}</a>}
       </nav>
     </main>
   </div>

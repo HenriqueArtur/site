@@ -7,6 +7,7 @@ import { localePath } from '../lib/i18n/locale-path.ts';
 import { defaultLocale, type Locale, locales } from '../lib/i18n/locales.ts';
 import { redirectTarget } from '../lib/i18n/redirect-target.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import { blogVisible } from '../lib/routes/blog-visible.ts';
 import { jsonLd, type Node } from '../lib/seo/json-ld.ts';
 import { personSchema } from '../lib/seo/person-schema.ts';
 import { LOCALE_KEY } from '../scripts/language/remember-choice.ts';
@@ -79,6 +80,10 @@ const ogImage = new URL(pageImage ?? (locale === 'en' ? '/og-en.png' : '/og.png'
  * cópia aqui — um dado desatualizado neste bloco só apareceria meses depois,
  * num resultado de busca.
  */
+// Um `<link rel=alternate>` para um feed que não existe é 404 anunciado no
+// `<head>` de toda página. Ver blog-visible.ts.
+const temBlog = blogVisible(import.meta.env.DEV);
+
 const site = Astro.site?.href ?? canonical;
 const graph = jsonLd([...schema, personSchema({ site, locale })]);
 
@@ -162,12 +167,16 @@ const detection = `
       href={new URL(localePath(pathname, defaultLocale), Astro.site).href}
     />
 
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title={`${ui.blogTitle[locale]} — Henrique Artur`}
-      href={new URL(locale === 'en' ? '/en/rss.xml' : '/rss.xml', Astro.site).href}
-    />
+    {
+      temBlog && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${ui.blogTitle[locale]} — Henrique Artur`}
+          href={new URL(locale === 'en' ? '/en/rss.xml' : '/rss.xml', Astro.site).href}
+        />
+      )
+    }
 
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
