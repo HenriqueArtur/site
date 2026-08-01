@@ -1,0 +1,143 @@
+---
+import type { Locale } from '../lib/i18n/locales.ts';
+import { ui } from '../lib/i18n/ui.ts';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+{/*
+  É um LINK para uma âncora, e não um <button>.
+
+  Assim ele funciona sem JavaScript — o navegador salta para o topo por conta
+  própria — e o JS só acrescenta a rolagem suave e o aparecer condicional. Um
+  <button> dependeria inteiramente de script para fazer qualquer coisa.
+*/}
+<a class="to-top" href="#top" data-to-top>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M12 20 V5" />
+    <path d="M5 11 L12 4 L19 11" />
+  </svg>
+  <span class="visually-hidden">{ui.backToTop[locale]}</span>
+</a>
+
+<style>
+  .to-top {
+    position: fixed;
+    /* `env(safe-area-inset-*)` afasta o botão da barra de gestos em telefones
+       com tela até a borda. Sem isso ele fica sob o risco do sistema. */
+    inset-block-end: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+    inset-inline-end: calc(var(--space-2) + env(safe-area-inset-right, 0px));
+    z-index: 5;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px: o alvo confortável para o dedo, e não o mínimo da norma. */
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+
+    color: var(--color-ink);
+    background-color: var(--color-paper);
+    background-image: none;
+    border: 1px solid var(--color-line-strong);
+    box-shadow: 2px 2px 0 color-mix(in srgb, var(--color-ink) 14%, transparent);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.5rem);
+    transition:
+      opacity 220ms ease-out,
+      transform 220ms ease-out,
+      visibility 220ms;
+  }
+
+  .to-top[data-visible] {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /*
+   * Sem JavaScript o botão fica sempre visível: ele continua funcionando, e
+   * escondê-lo permanentemente tiraria a função de quem não executa script.
+   */
+  @media (scripting: none) {
+    .to-top {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  .to-top:hover {
+    color: var(--color-paper);
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+
+  .to-top svg {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+
+<script>
+  import { shouldShowTop } from '../scripts/motion/should-show-top.ts';
+
+  const button = document.querySelector<HTMLElement>('[data-to-top]');
+  const about = document.querySelector<HTMLElement>('#sobre');
+
+  if (button && about) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let visible = false;
+    let threshold = 0;
+    let scheduled = false;
+
+    // O limiar é o fim do "Sobre" em coordenadas do documento: o botão só
+    // aparece depois que aquela seção passou inteira pelo topo da janela.
+    const measure = () => {
+      threshold = about.getBoundingClientRect().bottom + window.scrollY;
+    };
+
+    const update = () => {
+      scheduled = false;
+
+      const next = shouldShowTop({ scrollY: window.scrollY, threshold, visible });
+      if (next === visible) return;
+
+      visible = next;
+      button.toggleAttribute('data-visible', visible);
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    };
+
+    button.addEventListener('click', (event) => {
+      // O href continua sendo o caminho quando não há script; aqui só se troca
+      // o salto por uma rolagem suave — e nem isso, sob movimento reduzido.
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: still.matches ? 'auto' : 'smooth' });
+    });
+
+    measure();
+    update();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', () => {
+      measure();
+      schedule();
+    });
+  }
+</script>

@@ -39,18 +39,18 @@ export const profile = {
   summary: [
     {
       'pt-BR':
-        'Tech Lead na Sunne Energias Renováveis. São quase 8 anos de experiência profissional e mais de 6 liderando times e projetos, atravessando domínios que vão de energia renovável e saúde mental a telecomunicações, educação e jogos.',
-      en: 'Tech Lead at Sunne Energias Renováveis. Nearly 8 years of professional experience and more than 6 leading teams and projects, across domains ranging from renewable energy and mental health to telecom, education, and games.',
+        'Tech Lead na Sunne Energias Renováveis. São quase 8 anos de experiência profissional e *mais de 6 liderando times e projetos*, atravessando domínios que vão de energia renovável e saúde mental a telecomunicações, educação e jogos.',
+      en: 'Tech Lead at Sunne Energias Renováveis. Nearly 8 years of professional experience and *more than 6 leading teams and projects*, across domains ranging from renewable energy and mental health to telecom, education, and games.',
     },
     {
       'pt-BR':
-        'Minha formação em Sistemas e Mídias Digitais pela UFC me deu uma base dupla — design, interação humano-computador e programação. É o que me permite atuar dos dois lados: arquitetar o sistema e cuidar de como ele é usado.',
-      en: 'My degree in Digital Systems and Media at UFC gave me a dual foundation — design, human-computer interaction, and programming. That is what lets me work on both sides: architecting the system and shaping how it is used.',
+        'Minha formação em Sistemas e Mídias Digitais pela UFC me deu uma base dupla — design, interação humano-computador e programação. É o que me permite atuar dos dois lados: *arquitetar o sistema e cuidar de como ele é usado*.',
+      en: 'My degree in Digital Systems and Media at UFC gave me a dual foundation — design, human-computer interaction, and programming. That is what lets me work on both sides: *architecting the system and shaping how it is used*.',
     },
     {
       'pt-BR':
-        'Design, qualidade e assertividade definem como eu trabalho. Valorizo ambiente colaborativo, compartilhamento de conhecimento e código aberto — o archwarden, um linter de arquitetura para TypeScript escrito em Rust, nasceu da vontade de transformar convenção em regra verificável.',
-      en: 'Design, quality, and decisiveness define how I work. I value collaborative environments, knowledge sharing, and open source — archwarden, an architecture linter for TypeScript written in Rust, came out of wanting to turn convention into a rule a machine can check.',
+        'Design, qualidade e assertividade definem como eu trabalho. Valorizo ambiente colaborativo, compartilhamento de conhecimento e código aberto — o archwarden, um linter de arquitetura para TypeScript escrito em Rust, nasceu da vontade de *transformar convenção em regra verificável*.',
+      en: 'Design, quality, and decisiveness define how I work. I value collaborative environments, knowledge sharing, and open source — archwarden, an architecture linter for TypeScript written in Rust, came out of wanting to *turn convention into a rule a machine can check*.',
     },
   ] satisfies Localized[],
 

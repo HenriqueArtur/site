@@ -58,10 +58,16 @@ const labelFor: Record<Locale, string> = {
    */
   .lang__link {
     background-image: none;
-    display: inline-block;
-    /* 24px de alvo de toque, mínimo da WCAG 2.2. */
-    min-height: 1.5rem;
-    padding: 0.125rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    /*
+     * 36px de alvo de toque. A WCAG 2.2 exige 24px, e era esse o valor antes —
+     * mas 24px é o piso do que passa numa auditoria, não o que se acerta com o
+     * dedo. O mínimo confortável em toque fica perto de 44px, e 36 com folga
+     * lateral é o meio-termo que não engorda a navegação.
+     */
+    min-height: 2.25rem;
+    padding: 0.25rem 0.75rem;
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
     color: var(--color-ink-soft);

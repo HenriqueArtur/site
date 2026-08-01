@@ -10,8 +10,10 @@ import { sectionSurfaces } from '../lib/design/section-surfaces.ts';
 import { formatPeriod } from '../lib/i18n/format-period.ts';
 import type { Locale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import BackToTop from './BackToTop.astro';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import Link from './Link.astro';
+import RichText from './RichText.astro';
 import Section from './Section.astro';
 import Terrarium from './Terrarium.astro';
 
@@ -31,14 +33,14 @@ const others = openSource.filter((repo) => !repo.featured);
   description={profile.tagline[locale]}
   locale={locale}
 >
-  <header class="hero surface surface--grid">
+  <header id="top" class="hero surface surface--grid">
     <div class="shell">
       <div class="hero__top">
         <p class="label hero__eyebrow">
           {profile.role[locale]} · {profile.location[locale]}
         </p>
         <div class="hero__nav">
-          <p class="label">
+          <p class="label hero__blog">
             <a href={locale === 'en' ? '/en/blog/' : '/blog/'}>{ui.blogLabel[locale]}</a>
           </p>
           <LanguageSwitcher locale={locale} pathname={pathname} />
@@ -87,7 +89,13 @@ const others = openSource.filter((repo) => !repo.featured);
         title={ui.aboutTitle[locale]}
       >
         <div class="prose">
-          {profile.summary.map((paragraph) => <p>{paragraph[locale]}</p>)}
+          {
+            profile.summary.map((paragraph) => (
+              <p>
+                <RichText text={paragraph[locale]} />
+              </p>
+            ))
+          }
         </div>
       </Section>
 
@@ -307,6 +315,8 @@ const others = openSource.filter((repo) => !repo.featured);
       </p>
     </div>
   </footer>
+
+  <BackToTop locale={locale} />
 </Base>
 
 <script>
@@ -583,13 +593,27 @@ const others = openSource.filter((repo) => !repo.featured);
     padding-block: var(--space-4) var(--space-6);
   }
 
+  /*
+   * No mobile, coluna com a navegação em cima.
+   *
+   * Em linha, o cargo — "Tech Lead · Fortaleza, Ceará — Brasil" — consome a
+   * largura toda e empurra a navegação para uma segunda linha, onde ela fica
+   * órfã à esquerda. Empilhado e com a navegação primeiro, ela ocupa o lugar
+   * que já é o dela em qualquer site: o topo.
+   */
   .hero__top {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-2);
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
     margin-block-end: var(--space-3);
+  }
+
+  .hero__nav {
+    order: -1;
+    /* Encostada na direita: é onde navegação mora, e a coluna à esquerda fica
+       livre para o cargo e o nome começarem no mesmo eixo. */
+    align-self: flex-end;
   }
 
   .hero__eyebrow {
@@ -636,6 +660,14 @@ const others = openSource.filter((repo) => !repo.featured);
     display: flex;
     gap: var(--space-2);
     align-items: center;
+  }
+
+  /* Mesma altura das fichas de idioma, para a linha de navegação ficar reta. */
+  .hero__blog {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    margin: 0;
   }
 
   .hero__name {
@@ -1297,6 +1329,19 @@ const others = openSource.filter((repo) => !repo.featured);
   }
 
   @media (min-width: 48rem) {
+    .hero__top {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-1) var(--space-2);
+    }
+
+    .hero__nav {
+      order: 0;
+      align-self: auto;
+    }
+
     .hero__body {
       flex-direction: row;
       align-items: flex-start;

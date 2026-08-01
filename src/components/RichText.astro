@@ -1,0 +1,51 @@
+---
+import { parseEmphasis } from '../lib/content/parse-emphasis.ts';
+
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const segments = parseEmphasis(text);
+---
+
+{
+  segments.map((segment) =>
+    segment.marked ? (
+      /*
+        `<strong>`, e não `<span>`.
+
+        Se a palavra merece destaque na tela, ela merece destaque para quem usa
+        leitor de tela também — um span estilizado deixa a ênfase invisível para
+        quem não vê. `<mark>` seria errado: ele significa "relevante para uma
+        busca", não "importante no texto".
+      */
+      <strong class="marked">{segment.text}</strong>
+    ) : (
+      <Fragment>{segment.text}</Fragment>
+    ),
+  )
+}
+
+<style>
+  .marked {
+    /*
+     * Sem negrito: o destaque é o traço. `<strong>` carrega a ênfase para o
+     * leitor de tela; negrito somado ao traço seria dizer a mesma coisa duas
+     * vezes e pesar o parágrafo.
+     */
+    font-weight: inherit;
+
+    /* Repetido no eixo X, o traço acompanha a palavra em qualquer largura. */
+    background-image: var(--mark-underline);
+    background-repeat: repeat-x;
+    background-position: 0 100%;
+    background-size: auto 0.34em;
+    padding-block-end: 0.14em;
+
+    /* Sem isto, uma palavra marcada que quebra de linha recebe o traço só uma
+       vez, esticado entre as duas partes. */
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+</style>

@@ -11,6 +11,10 @@ export const ui = {
     'pt-BR': 'Pular para o conteúdo',
     en: 'Skip to content',
   },
+  backToTop: {
+    'pt-BR': 'Voltar ao topo',
+    en: 'Back to top',
+  },
   newTab: {
     'pt-BR': 'abre em nova aba',
     en: 'opens in a new tab',
