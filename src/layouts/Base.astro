@@ -1,10 +1,13 @@
 ---
+import { profile } from '../lib/content/profile.ts';
 import { cssVariables } from '../lib/design/css-variables.ts';
+import { markUnderline } from '../lib/design/mark-underline.ts';
 import { tokens } from '../lib/design/tokens.ts';
 import { localePath } from '../lib/i18n/locale-path.ts';
 import { defaultLocale, type Locale, locales } from '../lib/i18n/locales.ts';
 import { redirectTarget } from '../lib/i18n/redirect-target.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import { personSchemaJson } from '../lib/seo/person-schema.ts';
 import { LOCALE_KEY } from '../scripts/language/remember-choice.ts';
 import { shouldRunFallback } from '../scripts/motion/scroll-motion.ts';
 import '../styles/fonts.css';
@@ -22,7 +25,28 @@ const { pathname } = Astro.url;
 // As custom properties saem dos mesmos tokens que os testes de contraste leem.
 const variables = cssVariables(tokens);
 
+// O traço das palavras marcadas nasce do mesmo token de cor que todo o resto.
+const markRule = `--mark-underline: ${markUnderline(tokens.color.accent)};`;
+
 const canonical = new URL(localePath(pathname, locale), Astro.site).href;
+
+/*
+ * Imagem de compartilhamento, uma por idioma — é ela que aparece no LinkedIn e
+ * no WhatsApp. Gerada por tools/build-icons.mjs a partir dos mesmos tokens e da
+ * mesma tipografia do site, e commitada em public/.
+ *
+ * A URL precisa ser absoluta: nenhum agregador resolve caminho relativo aqui.
+ */
+const ogImage = new URL(locale === 'en' ? '/og-en.png' : '/og.png', Astro.site).href;
+
+/*
+ * Dados estruturados sobre a pessoa.
+ *
+ * Montados a partir de profile.ts e timeline.ts, então cargo, empregador e
+ * perfis não existem numa segunda cópia aqui — um dado desatualizado neste
+ * bloco só apareceria meses depois, num resultado de busca.
+ */
+const personJson = personSchemaJson({ site: Astro.site?.href ?? canonical, locale });
 
 const alternates = locales.map((option) => ({
   hreflang: option,
@@ -78,6 +102,15 @@ const detection = `
     <title>{title}</title>
     <meta name="description" content={description} />
 
+    <!--
+      SVG primeiro: escala em qualquer densidade e pesa 700 bytes. O PNG existe
+      porque o Safari no iOS ignora favicon.svg, e o apple-touch-icon porque
+      atalho na tela inicial usa outro tamanho e não aceita transparência.
+    -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <link rel="canonical" href={canonical} />
     {
       alternates.map((alternate) => (
@@ -102,6 +135,18 @@ const detection = `
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={locale.replace('-', '_')} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`Henrique Artur — ${profile.tagline[locale]}`} />
+
+    <!--
+      O Twitter/X não lê og:image sem saber o formato do cartão, e sem isto
+      mostra a miniatura quadradinha em vez da imagem inteira.
+    -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" is:inline set:html={personJson} />
 
     <!-- A fonte de corpo é a única no caminho crítico de leitura. -->
     <link
@@ -112,7 +157,7 @@ const detection = `
       crossorigin
     />
 
-    <style set:html={`:root {\n${variables}}`}></style>
+    <style set:html={`:root {\n${variables}${markRule}\n}`}></style>
     <script is:inline set:html={detection} />
     <script is:inline set:html={motionFallback} />
   </head>
