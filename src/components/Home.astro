@@ -405,44 +405,54 @@ const others = openSource.filter((repo) => !repo.featured);
 
       const scroll = window.scrollY;
       const box = aside.getBoundingClientRect();
-      const target = about.getBoundingClientRect();
 
       // A altura contada é a do objeto, não a do aside: o aside já inclui o
       // espaçador, e usá-lo realimentaria a conta a cada medição.
       const object = aside.firstElementChild?.getBoundingClientRect();
 
+      /*
+       * Até onde o objeto acompanha, e isso muda com a largura.
+       *
+       * No desktop ele para no fim do "Sobre": mais que isso e ele passaria a
+       * disputar espaço com as seções de cartões, que já têm movimento próprio.
+       *
+       * No mobile ele encolhe para o canto e vira um elemento discreto — ali
+       * acompanhar a página inteira não atrapalha nada, e some antes da hora
+       * é que pareceria abandono.
+       */
+      const sideBySide = matchMedia('(min-width: 48rem)').matches;
+
+      const sectionBottom = sideBySide
+        ? about.getBoundingClientRect().bottom + scroll
+        : document.documentElement.scrollHeight;
+
       const range = stickyRange({
         boxTop: box.top + scroll,
         boxHeight: object?.height ?? box.height,
-        sectionBottom: target.bottom + scroll,
+        sectionBottom,
         // Folga em fração da janela, e não em pixels: numa tela alta o objeto
         // precisa percorrer mais para dar a mesma sensação de demorar a soltar.
-        extra: window.innerHeight * 0.4,
+        // No mobile o alvo já é o fim da página, então não há o que acrescentar.
+        extra: sideBySide ? window.innerHeight * 0.4 : 0,
       });
 
       aside.style.setProperty('--sticky-range', `${Math.round(range)}px`);
     };
 
     /*
-     * Enquanto está grudado, o objeto passa por cima do texto do "Sobre" — ele
-     * é o único elemento parado enquanto tudo sobe. O deslocamento para a
-     * direita devolve a coluna de leitura, e o objeto continua presente pela
-     * borda.
+     * `--drift` mede quanto tempo o objeto passa PARADO, de 0 a 1.
      *
-     * Só no desktop: no mobile ele fica acima do texto, sem sobreposição.
+     * O que se faz com esse número é decisão do CSS, e é diferente em cada
+     * largura: no desktop ele desliza para a direita, liberando a coluna de
+     * leitura; no mobile ele encolhe para o canto superior direito, porque ali
+     * ocupa a largura toda e sair de lado só o cortaria.
      */
-    const sideBySide = matchMedia('(min-width: 48rem)');
     const stuckAt = 5 * 16;
 
     let scheduled = false;
 
     const drift = () => {
       scheduled = false;
-
-      if (!sideBySide.matches) {
-        aside.style.removeProperty('--drift');
-        return;
-      }
 
       const progress = driftProgress({
         boxTop: aside.getBoundingClientRect().top,
@@ -593,6 +603,17 @@ const others = openSource.filter((repo) => !repo.featured);
    */
   .hero__reach {
     block-size: var(--sticky-range, 20rem);
+  }
+
+  /*
+   * A margem negativa cancela o espaçador e precisa valer em QUALQUER largura.
+   *
+   * Ela estava só no desktop, e no mobile o espaçador ficava sem contrapeso —
+   * eram ~20rem de vazio entre o hero e o "Sobre". O espaçador existe para dar
+   * alcance ao sticky, não para ocupar espaço.
+   */
+  .hero__aside {
+    margin-block-end: calc(-1 * var(--sticky-range, 20rem));
   }
 
   /*
@@ -1302,8 +1323,6 @@ const others = openSource.filter((repo) => !repo.featured);
       flex: 0 0 auto;
       width: 48rem;
       max-width: 64%;
-      /* A margem negativa cancela o espaçador, para nada abaixo ser empurrado. */
-      margin-block-end: calc(-1 * var(--sticky-range, 20rem));
     }
   }
 

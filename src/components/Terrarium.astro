@@ -129,13 +129,23 @@ const modelUrl = '/models/terrarium.glb';
    * fundo da próxima seção pintaria por cima.
    */
   .terrarium {
-    position: relative;
     /*
-     * 1, e não 2: precisa ficar acima do fundo das seções seguintes — que
-     * pintam depois, por ordem do DOM — e abaixo do texto do hero, que sobe
-     * para 2 justamente por isso.
+     * MOBILE — gruda no topo e encolhe para o canto superior direito.
+     *
+     * `transform-origin: 100% 0` é o que faz o encolhimento virar deslocamento:
+     * a escala puxa o objeto para o próprio canto superior direito, sem
+     * precisar de translação. Como ele já sangra até a borda da tela, esse
+     * canto é o canto da janela.
+     *
+     * z-index 3 aqui, e não 1: encolhido ele vira um elemento flutuante sobre o
+     * conteúdo. No desktop é o contrário — lá ele fica atrás do texto.
      */
-    z-index: 1;
+    position: sticky;
+    inset-block-start: var(--space-2);
+    z-index: 3;
+    transform-origin: 100% 0;
+    transform: scale(calc(1 - var(--drift, 0) * 0.62));
+    transition: transform 120ms linear;
     aspect-ratio: 9 / 8;
     width: calc(100% + var(--space-2) * 2);
     margin-inline: calc(-1 * var(--space-2));
@@ -188,12 +198,13 @@ const modelUrl = '/models/terrarium.glb';
          em relação ao hero, porque a coluna de texto começa mais acima. */
       margin-block-start: -11rem;
       /*
-       * `--drift` vai de 0 a 1 conforme o objeto fica parado e o texto sobe por
-       * baixo dele. 9rem é o quanto ele sai para a direita no fim — o bastante
-       * para liberar a coluna de leitura sem sumir da tela.
+       * No desktop ele desliza para o lado em vez de encolher: há espaço, e a
+       * coluna de leitura fica à esquerda. 9rem libera o texto sem tirá-lo da
+       * tela.
        */
+      z-index: 1;
+      transform-origin: 50% 50%;
       transform: translateX(calc(var(--drift, 0) * 9rem));
-      transition: transform 120ms linear;
       margin-block-end: -10rem;
     }
   }
