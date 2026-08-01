@@ -1,0 +1,58 @@
+Este repositório tem duas partes com licenças diferentes.
+
+--------------------------------------------------------------------------------
+CÓDIGO — Licença MIT
+--------------------------------------------------------------------------------
+
+Aplica-se ao código-fonte: src/, tools/, e os arquivos de configuração na raiz.
+
+Copyright (c) 2026 Henrique Artur
+
+É concedida permissão, gratuitamente, a qualquer pessoa que obtenha uma cópia
+deste software e dos arquivos de documentação associados (o "Software"), para
+lidar com o Software sem restrição, incluindo, sem limitação, os direitos de
+usar, copiar, modificar, mesclar, publicar, distribuir, sublicenciar e/ou vender
+cópias do Software, e permitir que as pessoas a quem o Software é fornecido o
+façam, sujeito às seguintes condições:
+
+O aviso de copyright acima e este aviso de permissão devem ser incluídos em
+todas as cópias ou partes substanciais do Software.
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU
+IMPLÍCITA, INCLUINDO, MAS NÃO SE LIMITANDO A, GARANTIAS DE COMERCIALIZAÇÃO,
+ADEQUAÇÃO A UM DETERMINADO FIM E NÃO VIOLAÇÃO. EM NENHUM CASO OS AUTORES OU
+TITULARES DE DIREITOS AUTORAIS SERÃO RESPONSÁVEIS POR QUALQUER REIVINDICAÇÃO,
+DANO OU OUTRA RESPONSABILIDADE, SEJA EM AÇÃO CONTRATUAL, ATO ILÍCITO OU DE
+OUTRA FORMA, DECORRENTE DE, FORA DE OU EM CONEXÃO COM O SOFTWARE OU O USO OU
+OUTRAS NEGOCIAÇÕES NO SOFTWARE.
+
+--------------------------------------------------------------------------------
+CONTEÚDO — Todos os direitos reservados
+--------------------------------------------------------------------------------
+
+Aplica-se aos textos e às informações pessoais e profissionais: content/,
+src/lib/content/, e as imagens de compartilhamento em public/.
+
+Copyright (c) 2026 Henrique Artur. Todos os direitos reservados.
+
+Os posts do blog, o resumo profissional, a trajetória, os projetos e a formação
+são texto autoral e não estão cobertos pela licença MIT acima. Reproduzi-los,
+no todo ou em parte, exige autorização. Citação com atribuição e link para a
+fonte é bem-vinda e dispensa pedido.
+
+A separação é deliberada: o código deste site pode servir a outra pessoa, mas o
+currículo dele não.
+
+--------------------------------------------------------------------------------
+TERCEIROS
+--------------------------------------------------------------------------------
+
+Nem tudo aqui é de autoria própria, e estas partes seguem as licenças dos
+respectivos autores:
+
+- public/models/terrarium.glb — "Smol Ame in an upcycled terrarium", de Seafoam,
+  sob CC BY 4.0. A atribuição exigida pela licença está no rodapé do site.
+  Ver public/models/README.md.
+
+- public/fonts/ — Zilla Slab, Source Serif 4 e IBM Plex Mono, sob SIL Open Font
+  License 1.1. Ver public/fonts/LICENSE.md.

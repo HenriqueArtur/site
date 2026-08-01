@@ -1,13 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { personSchema, personSchemaJson } from './person-schema.ts';
+import { PERSON_ID, personSchema } from './person-schema.ts';
 
 const site = 'https://henriqueartur.com';
 
 describe('personSchema', () => {
-  it('declara o tipo e o contexto que os buscadores esperam', () => {
-    const schema = personSchema({ site, locale: 'pt-BR' });
-    expect(schema['@context']).toBe('https://schema.org');
-    expect(schema['@type']).toBe('Person');
+  it('declara o tipo que os buscadores esperam', () => {
+    expect(personSchema({ site, locale: 'pt-BR' })['@type']).toBe('Person');
+  });
+
+  it('não declara @context, que é do grafo e não do nó', () => {
+    // Repetir o contexto em cada nó de um @graph é redundante e, em alguns
+    // validadores, erro.
+    expect(personSchema({ site, locale: 'pt-BR' })['@context']).toBeUndefined();
+  });
+
+  it('tem @id absoluto e estável, para os outros nós apontarem para cá', () => {
+    expect(personSchema({ site, locale: 'pt-BR' })['@id']).toBe(
+      `https://henriqueartur.com/${PERSON_ID}`,
+    );
+  });
+
+  it('usa o mesmo @id nos dois idiomas', () => {
+    // São a mesma pessoa. Dois ids fariam o buscador registrar duas.
+    expect(personSchema({ site, locale: 'en' })['@id']).toBe(
+      personSchema({ site, locale: 'pt-BR' })['@id'],
+    );
   });
 
   it('leva nome, cargo e e-mail', () => {
@@ -29,8 +46,6 @@ describe('personSchema', () => {
   });
 
   it('não põe mailto nem caminho interno em sameAs', () => {
-    // `sameAs` é para perfis em outros sites. Um mailto ali é ruído para o
-    // buscador e não liga conta nenhuma.
     for (const url of personSchema({ site, locale: 'pt-BR' }).sameAs) {
       expect(url).toMatch(/^https:\/\//);
       expect(url).not.toContain('henriqueartur.com');
@@ -48,31 +63,54 @@ describe('personSchema', () => {
   });
 
   it('não inventa emprego quando não há experiência em aberto', () => {
-    // O empregador sai do dado, não de uma constante: se um dia não houver
-    // experiência em aberto, o campo simplesmente não é afirmado.
-    const schema = personSchema({ site, locale: 'pt-BR', timeline: [] });
-    expect(schema.worksFor).toBeUndefined();
-  });
-});
-
-describe('personSchemaJson', () => {
-  it('devolve JSON válido', () => {
-    const json = personSchemaJson({ site, locale: 'pt-BR' });
-    expect(() => JSON.parse(json)).not.toThrow();
-    expect(JSON.parse(json)['@type']).toBe('Person');
+    expect(personSchema({ site, locale: 'pt-BR', timeline: [] }).worksFor).toBeUndefined();
   });
 
-  it('escapa o sinal de menor, para o conteúdo não fechar a tag script', () => {
-    // Um `</script>` dentro de qualquer texto encerraria o bloco no meio e o
-    // resto viraria HTML. É o caminho clássico de injeção via JSON embutido.
-    const json = personSchemaJson({
+  it('lista as instituições de ensino', () => {
+    const { alumniOf } = personSchema({ site, locale: 'pt-BR' });
+    expect(alumniOf).toContainEqual({
+      '@type': 'CollegeOrUniversity',
+      name: 'Universidade Federal do Ceará',
+    });
+  });
+
+  it('tira as tecnologias dos projetos, e não de uma lista à parte', () => {
+    // Uma lista escrita à mão viraria vitrine: cresceria com o que soa bem em
+    // vez do que foi construído, e a diferença não apareceria em lugar nenhum.
+    const { knowsAbout } = personSchema({
       site,
       locale: 'pt-BR',
-      overrides: { name: 'Henrique </script><img src=x>' },
+      projects: [
+        {
+          id: 'a',
+          name: { 'pt-BR': '', en: '' },
+          context: '',
+          description: { 'pt-BR': '', en: '' },
+          tech: ['Rust', 'Node.js'],
+        },
+        {
+          id: 'b',
+          name: { 'pt-BR': '', en: '' },
+          context: '',
+          description: { 'pt-BR': '', en: '' },
+          tech: ['Node.js', 'React'],
+        },
+      ],
     });
+    expect(knowsAbout).toEqual(['Node.js', 'React', 'Rust']);
+  });
 
-    expect(json).not.toContain('</script>');
-    expect(json).toContain('\\u003c');
-    expect(JSON.parse(json).name).toBe('Henrique </script><img src=x>');
+  it('não repete tecnologia usada em mais de um projeto', () => {
+    const { knowsAbout } = personSchema({ site, locale: 'pt-BR' });
+    expect(knowsAbout.length).toBe(new Set(knowsAbout).size);
+  });
+
+  it('traz o endereço em campos separados, com país em código ISO', () => {
+    expect(personSchema({ site, locale: 'pt-BR' }).address).toEqual({
+      '@type': 'PostalAddress',
+      addressLocality: 'Fortaleza',
+      addressRegion: 'Ceará',
+      addressCountry: 'BR',
+    });
   });
 });

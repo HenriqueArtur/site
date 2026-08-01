@@ -19,6 +19,23 @@ export const ui = {
     'pt-BR': 'abre em nova aba',
     en: 'opens in a new tab',
   },
+  notFoundTitle: {
+    'pt-BR': 'Página não encontrada',
+    en: 'Page not found',
+  },
+  notFoundBody: {
+    'pt-BR':
+      'O endereço não existe, ou o conteúdo mudou de lugar. Nada aqui é culpa sua — os caminhos abaixo continuam valendo.',
+    en: 'This address does not exist, or the content moved. None of this is your fault — the paths below still work.',
+  },
+  notFoundHome: {
+    'pt-BR': 'Ir para a página inicial',
+    en: 'Go to the home page',
+  },
+  notFoundBlog: {
+    'pt-BR': 'Ver todos os posts',
+    en: 'See all posts',
+  },
   contactLinks: {
     'pt-BR': 'Links de contato',
     en: 'Contact links',

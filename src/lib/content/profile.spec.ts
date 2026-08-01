@@ -11,6 +11,21 @@ describe('profile', () => {
     }
   });
 
+  it('mantém o endereço estruturado coerente com o texto de tela', () => {
+    // São duas representações do mesmo lugar: uma para ler, outra para o
+    // buscador. Se alguém mudar de cidade e esquecer uma das duas, o dado
+    // estruturado passa a mentir — e ninguém vê isso olhando a página.
+    for (const locale of locales) {
+      expect(profile.location[locale]).toContain(profile.address.city);
+      expect(profile.location[locale]).toContain(profile.address.region);
+    }
+  });
+
+  it('usa código ISO de país, e não o nome', () => {
+    // schema.org espera alpha-2 em addressCountry; "Brasil" ali não resolve.
+    expect(profile.address.country).toMatch(/^[A-Z]{2}$/);
+  });
+
   it('tem todos os parágrafos de resumo traduzidos', () => {
     expect(profile.summary.length).toBeGreaterThan(0);
     for (const paragraph of profile.summary) {

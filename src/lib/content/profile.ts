@@ -20,6 +20,20 @@ export const profile = {
     en: 'Fortaleza, Ceará — Brazil',
   } satisfies Localized,
 
+  /**
+   * O mesmo lugar, em campos separados, para os dados estruturados.
+   *
+   * `location` acima é texto de tela e muda de idioma ("Brasil"/"Brazil"); isto
+   * é o que o buscador lê, e país aqui é código ISO. Um teste garante que a
+   * cidade continue aparecendo nas duas versões, para não saírem de sincronia.
+   */
+  address: {
+    city: 'Fortaleza',
+    region: 'Ceará',
+    /** ISO 3166-1 alpha-2. */
+    country: 'BR',
+  },
+
   email: 'contato@henriqueartur.com',
 
   /**

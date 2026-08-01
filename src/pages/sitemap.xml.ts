@@ -10,17 +10,41 @@ export async function GET(context: APIContext) {
   const site = context.site?.origin ?? 'https://henriqueartur.com';
   const urls: SitemapUrl[] = [];
 
+  /*
+   * A data mais recente de um conjunto de posts.
+   *
+   * Uma página de arquivo muda de verdade quando entra um post nela, então a
+   * data do post mais novo é o que ela tem de mais próximo de "última
+   * modificação" — e é um sinal honesto de quando vale revisitar.
+   */
+  const newest = (group: { date: Date }[]) =>
+    group.reduce<Date | undefined>(
+      (latest, post) => (latest && latest >= post.date ? latest : post.date),
+      undefined,
+    );
+
   for (const locale of locales) {
     const prefix = locale === 'en' ? '/en' : '';
     const posts = selectPosts(entries, locale);
 
-    urls.push({ path: `${prefix}/` }, { path: `${prefix}/blog/` });
+    /*
+     * A home sai sem lastmod de propósito.
+     *
+     * Ela muda quando o perfil muda, e isso não está datado em lugar nenhum.
+     * Preencher com a data do build seria mentir toda vez que o CI roda, e
+     * rastreador que percebe lastmod mentiroso passa a ignorar o campo no site
+     * inteiro — inclusive onde ele é verdadeiro.
+     */
+    urls.push({ path: `${prefix}/` }, { path: `${prefix}/blog/`, lastModified: newest(posts) });
 
     for (const year of groupPosts(posts)) {
-      urls.push({ path: `${prefix}/blog/${year.year}/` });
+      const yearPosts = year.months.flatMap((month) => month.posts);
+      urls.push({ path: `${prefix}/blog/${year.year}/`, lastModified: newest(yearPosts) });
+
       for (const month of year.months) {
         urls.push({
           path: `${prefix}/blog/${year.year}/${String(month.month).padStart(2, '0')}/`,
+          lastModified: newest(month.posts),
         });
       }
     }

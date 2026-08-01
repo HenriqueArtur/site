@@ -1,0 +1,39 @@
+version: 2
+
+# As versões deste projeto são cravadas — sem ^ e sem ~ — de propósito: um build
+# reproduz exatamente o que foi testado. O efeito colateral é que nada atualiza
+# sozinho, e ficar para trás em silêncio é o risco real. Foi assim que o projeto
+# quase nasceu com Astro 5 e CVEs de esbuild e sharp.
+#
+# O Dependabot devolve o aviso sem devolver a atualização automática: ele abre PR
+# e o CI decide. A revisão continua sendo humana.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Um PR por semana com tudo o que é de rotina. Patch e minor de dependência
+    # de desenvolvimento não merecem um PR cada.
+    groups:
+      dev-minor:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      prod-minor:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    # Major fica de fora do agrupamento: cada um exige ler changelog.
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: '⬆️ |'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: '⬆️ |'

@@ -8,6 +8,7 @@ import { monthName } from '../../../lib/i18n/month-name.ts';
 import { ui } from '../../../lib/i18n/ui.ts';
 import { groupPosts } from '../../../lib/posts/group-posts.ts';
 import { selectPosts } from '../../../lib/posts/select-posts.ts';
+import { breadcrumbList } from '../../../lib/seo/breadcrumb-list.ts';
 
 export async function getStaticPaths() {
   const entries = await getCollection('blog');
@@ -28,9 +29,13 @@ const { locale, posts } = Astro.props as {
 
 const years = groupPosts(posts);
 const prefix = locale === 'en' ? '/en' : '';
+const site = Astro.site?.href ?? 'https://henriqueartur.com';
+
+const trail = [{ name: ui.blogTitle[locale], path: `${prefix}/blog/` }];
 ---
 
-<Base title={`${ui.blogTitle[locale]} — Henrique Artur`} description={ui.blogDescription[locale]} locale={locale}>
+<Base title={`${ui.blogTitle[locale]} — Henrique Artur`} description={ui.blogDescription[locale]} locale={locale}
+  schema={[breadcrumbList(trail, site)]}>
   <div class="shell">
     <header class="head">
       <div class="head__top">

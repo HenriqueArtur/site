@@ -1,0 +1,78 @@
+---
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import Base from '../layouts/Base.astro';
+import { defaultLocale } from '../lib/i18n/locales.ts';
+import { ui } from '../lib/i18n/ui.ts';
+
+/*
+ * Uma página só, no idioma padrão.
+ *
+ * O 404 do GitHub Pages é servido para qualquer caminho que não existe,
+ * inclusive sob /en/ — ele não sabe de idioma. Uma versão em inglês em
+ * /en/404.html nunca seria alcançada, então o honesto é assumir o padrão e
+ * oferecer o seletor de idioma, que leva às páginas reais.
+ *
+ * Sem esta página o visitante cai no 404 genérico do GitHub, que não tem nem o
+ * nome do site — parece que o domínio quebrou.
+ */
+const locale = defaultLocale;
+---
+
+<Base title={`${ui.notFoundTitle[locale]} — Henrique Artur`} description={ui.notFoundBody[locale]} locale={locale}>
+  <div class="shell">
+    <header class="head">
+      <div class="head__top">
+        <p class="label">
+          <a href="/">Henrique Artur</a>
+        </p>
+        <LanguageSwitcher locale={locale} pathname="/" />
+      </div>
+    </header>
+
+    <main id="conteudo" class="missing">
+      <p class="label missing__code">404</p>
+      <h1>{ui.notFoundTitle[locale]}</h1>
+      <p class="missing__body">{ui.notFoundBody[locale]}</p>
+
+      <nav class="missing__links" aria-label={ui.notFoundTitle[locale]}>
+        <a href="/">{ui.notFoundHome[locale]}</a>
+        <a href="/blog/">{ui.notFoundBlog[locale]}</a>
+      </nav>
+    </main>
+  </div>
+</Base>
+
+<style>
+  .shell {
+    display: flex;
+    min-block-size: 100dvh;
+    flex-direction: column;
+  }
+
+  .missing {
+    /* Centrado no que sobra da altura, sem depender de altura fixa: o texto
+       cresce com o zoom e a caixa acompanha em vez de cortar. */
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: var(--space-5);
+  }
+
+  .missing__code {
+    color: var(--color-accent-deep);
+  }
+
+  .missing__body {
+    max-inline-size: var(--layout-measure);
+    margin-block-start: var(--space-2);
+    color: var(--color-ink-soft);
+  }
+
+  .missing__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-4);
+  }
+</style>

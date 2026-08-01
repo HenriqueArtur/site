@@ -8,8 +8,10 @@ import { projects } from '../lib/content/projects.ts';
 import { timeline } from '../lib/content/timeline.ts';
 import { sectionSurfaces } from '../lib/design/section-surfaces.ts';
 import { formatPeriod } from '../lib/i18n/format-period.ts';
+import { localePath } from '../lib/i18n/locale-path.ts';
 import type { Locale } from '../lib/i18n/locales.ts';
 import { ui } from '../lib/i18n/ui.ts';
+import { profilePage } from '../lib/seo/profile-page.ts';
 import BackToTop from './BackToTop.astro';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import Link from './Link.astro';
@@ -24,6 +26,9 @@ interface Props {
 const { locale } = Astro.props;
 const { pathname } = Astro.url;
 
+const site = Astro.site?.href ?? 'https://henriqueartur.com';
+const url = new URL(localePath(pathname, locale), site).href;
+
 const featured = openSource.find((repo) => repo.featured);
 const others = openSource.filter((repo) => !repo.featured);
 ---
@@ -32,6 +37,7 @@ const others = openSource.filter((repo) => !repo.featured);
   title={`${profile.name} — ${profile.role[locale]}`}
   description={profile.tagline[locale]}
   locale={locale}
+  schema={[profilePage({ site, locale, url })]}
 >
   <header id="top" class="hero surface surface--grid">
     <div class="shell">

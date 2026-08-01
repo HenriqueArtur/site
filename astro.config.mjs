@@ -5,6 +5,26 @@ import { externalLinks } from './src/lib/seo/external-links.ts';
 
 // A configuração de i18n entra na fase 4, junto com as rotas em inglês.
 // Aqui fica só o mínimo que a fase 1 precisa para gerar HTML estático.
+/*
+ * Sobre CSP: `security.csp` fica desligada, e não por esquecimento.
+ *
+ * O Astro 7 gera uma `<meta http-equiv="content-security-policy">` com hash de
+ * cada script e estilo. Medido neste projeto: ela sai correta, mas o Shiki
+ * pinta cada token com atributo `style` inline, e `style-src` cobre atributo
+ * também. Pôr `'unsafe-inline'` não resolve — a especificação manda o navegador
+ * ignorá-lo quando existe hash na mesma diretiva, e o Astro sempre emite hashes.
+ * O resultado seria bloco de código sem cor nenhuma, num blog técnico.
+ *
+ * A saída sugerida pela documentação do Astro é trocar Shiki por Prism, o que
+ * jogaria fora o tema com contraste medido em code-theme.ts.
+ *
+ * O que se ganharia é pouco: site estático, sem entrada de usuário, sem script
+ * de terceiro e sem nada renderizado a partir de query string. A superfície de
+ * XSS é o texto que o próprio autor escreve.
+ *
+ * Se um dia entrar formulário, comentário ou script de terceiro, esta conta
+ * muda e vale reabrir.
+ */
 export default defineConfig({
   site: 'https://henriqueartur.com',
   trailingSlash: 'always',

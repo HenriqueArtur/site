@@ -8,6 +8,8 @@ import { monthName } from '../../../../../lib/i18n/month-name.ts';
 import { ui } from '../../../../../lib/i18n/ui.ts';
 import { missingTranslations } from '../../../../../lib/posts/missing-translations.ts';
 import { type Post, selectPosts } from '../../../../../lib/posts/select-posts.ts';
+import { articleSchema } from '../../../../../lib/seo/article-schema.ts';
+import { breadcrumbList } from '../../../../../lib/seo/breadcrumb-list.ts';
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -61,9 +63,50 @@ const machineDate = `${post.year}-${pad(post.month)}-${pad(post.day)}`;
 
 const title = translated ? post.title : ui.noTranslationTitle[locale];
 const description = translated ? post.description : ui.noTranslationBody[locale];
+
+const site = Astro.site?.href ?? 'https://henriqueartur.com';
+
+/*
+ * Dados estruturados só quando o post existe neste idioma.
+ *
+ * A página "sem tradução" tem a URL de um post mas não é um: declará-la como
+ * `BlogPosting` prometeria ao buscador um artigo que ele não vai encontrar, e
+ * ainda com a data do original.
+ */
+const trail = [
+  { name: ui.blogTitle[locale], path: `${prefix}/blog/` },
+  { name: String(post.year), path: `${prefix}/blog/${post.year}/` },
+  {
+    name: monthName(post.month, locale),
+    path: `${prefix}/blog/${post.year}/${pad(post.month)}/`,
+  },
+];
+
+const schema = translated
+  ? [
+      articleSchema({
+        site,
+        locale,
+        title: post.title,
+        description: post.description,
+        path: post.path,
+        published: post.date,
+        tags: post.tags,
+        image: locale === 'en' ? '/og-en.png' : '/og.png',
+      }),
+      breadcrumbList([...trail, { name: post.title, path: post.path }], site),
+    ]
+  : [breadcrumbList(trail, site)];
 ---
 
-<Base title={`${title} — Henrique Artur`} description={description} locale={locale}>
+<Base
+  title={`${title} — Henrique Artur`}
+  description={description}
+  locale={locale}
+  ogType={translated ? 'article' : 'website'}
+  article={translated ? { published: post.date, tags: post.tags } : undefined}
+  schema={schema}
+>
   <div class="shell">
     <header class="head">
       <div class="head__top">
