@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Personal site and blog \u2014 henriqueartur.com",
+  "description": "Personal site and blog — henriqueartur.com",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -30,6 +30,7 @@
     "@types/three": "0.185.1",
     "archwarden": "0.5.1",
     "husky": "9.1.7",
+    "sharp": "0.35.3",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }

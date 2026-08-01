@@ -23,6 +23,14 @@ interface Props {
   /** Datas e assuntos do post, só quando a página é um. */
   article?: { published: Date; modified?: Date; tags?: readonly string[] };
   /**
+   * Imagem de compartilhamento, quando a página tem uma própria.
+   *
+   * Post usa a sua, com o título dentro — é o que faz quem vê o link ler o
+   * assunto do texto em vez de só o nome do autor. O resto do site usa a
+   * genérica do idioma.
+   */
+  ogImage?: string;
+  /**
    * Nós de dados estruturados desta página, além do `Person`.
    *
    * A pessoa é a mesma em todo o site e entra sempre; o que a página *é* —
@@ -31,7 +39,15 @@ interface Props {
   schema?: readonly Node[];
 }
 
-const { title, description, locale, ogType = 'website', article, schema = [] } = Astro.props;
+const {
+  title,
+  description,
+  locale,
+  ogType = 'website',
+  article,
+  ogImage: pageImage,
+  schema = [],
+} = Astro.props;
 const { pathname } = Astro.url;
 
 // As custom properties saem dos mesmos tokens que os testes de contraste leem.
@@ -49,7 +65,7 @@ const canonical = new URL(localePath(pathname, locale), Astro.site).href;
  *
  * A URL precisa ser absoluta: nenhum agregador resolve caminho relativo aqui.
  */
-const ogImage = new URL(locale === 'en' ? '/og-en.png' : '/og.png', Astro.site).href;
+const ogImage = new URL(pageImage ?? (locale === 'en' ? '/og-en.png' : '/og.png'), Astro.site).href;
 
 /*
  * Dados estruturados da página.
@@ -161,7 +177,7 @@ const detection = `
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`Henrique Artur — ${profile.tagline[locale]}`} />
+    <meta property="og:image:alt" content={`${title} — ${profile.name}`} />
 
     <!--
       O Twitter/X não lê og:image sem saber o formato do cartão, e sem isto

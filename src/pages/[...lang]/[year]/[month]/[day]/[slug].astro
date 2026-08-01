@@ -10,6 +10,7 @@ import { missingTranslations } from '../../../../../lib/posts/missing-translatio
 import { type Post, selectPosts } from '../../../../../lib/posts/select-posts.ts';
 import { articleSchema } from '../../../../../lib/seo/article-schema.ts';
 import { breadcrumbList } from '../../../../../lib/seo/breadcrumb-list.ts';
+import { ogImage } from '../../../../../lib/seo/og-image.ts';
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -92,7 +93,7 @@ const schema = translated
         path: post.path,
         published: post.date,
         tags: post.tags,
-        image: locale === 'en' ? '/og-en.png' : '/og.png',
+        image: ogImage(post.id).path,
       }),
       breadcrumbList([...trail, { name: post.title, path: post.path }], site),
     ]
@@ -104,6 +105,7 @@ const schema = translated
   description={description}
   locale={locale}
   ogType={translated ? 'article' : 'website'}
+  ogImage={translated ? ogImage(post.id).path : undefined}
   article={translated ? { published: post.date, tags: post.tags } : undefined}
   schema={schema}
 >

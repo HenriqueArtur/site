@@ -382,6 +382,35 @@ export function textPath(font, text, options) {
   return { d: parts.join(' '), width: pen - x - letterSpacing };
 }
 
+/**
+ * Quebra o texto em linhas que cabem na largura dada.
+ *
+ * Mede glifo a glifo, e não por contagem de caracteres: "Iiii" e "WWWW" têm o
+ * mesmo tamanho em caracteres e larguras muito diferentes na tela. Título de
+ * post é texto que o autor escreve livre, então a medida precisa ser a real.
+ *
+ * Palavra maior que a largura fica sozinha na linha e transborda, em vez de ser
+ * partida — hifenizar corretamente exige dicionário por idioma, e um corte
+ * arbitrário no meio de uma palavra é pior que uma linha larga.
+ */
+export function wrapText(font, text, size, maxWidth, letterSpacing = 0) {
+  const lines = [];
+  let current = '';
+
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && textWidth(font, candidate, size, letterSpacing) > maxWidth) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+
+  return lines;
+}
+
 /** Largura da linha sem desenhar nada — serve para centralizar e alinhar. */
 export function textWidth(font, text, size, letterSpacing = 0) {
   const scale = size / font.unitsPerEm;
