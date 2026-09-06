@@ -1,0 +1,264 @@
+---
+import type { Locale } from '../lib/i18n/locales.ts';
+import { ui } from '../lib/i18n/ui.ts';
+
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: readonly Heading[];
+  locale: Locale;
+}
+
+const { headings, locale } = Astro.props;
+
+/*
+ * Só h2 e h3. h1 é o título do post, que já está no topo da página, e h4 para
+ * baixo é subdivisão de detalhe — um índice que desce até lá deixa de ser mapa
+ * e vira sumário do sumário.
+ */
+const items = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+
+/*
+ * Abaixo de três seções o índice não ajuda: a página inteira cabe em duas
+ * rolagens, e a barra lateral só rouba atenção do texto.
+ */
+const worthShowing = items.length >= 3;
+---
+
+{
+  /*
+   * Um <details> e não uma lista sempre aberta.
+   *
+   * Em telefone o índice precisa caber sem empurrar o texto para baixo: quinze
+   * links antes do primeiro parágrafo transformam a abertura do post numa
+   * página de sumário. Recolhido, ele ocupa uma linha.
+   *
+   * E é <details> nativo em vez de um botão com script porque abrir e fechar
+   * tem que funcionar sem JavaScript — é a única navegação que sobra em tela
+   * estreita, e a menos indicada para depender de download de script.
+   */
+  worthShowing && (
+    <nav class="toc" aria-labelledby="toc-title" data-toc>
+      <details class="toc__box">
+        <summary class="label toc__title" id="toc-title">
+          {ui.tocTitle[locale]}
+        </summary>
+        <ol class="toc__list">
+          {items.map((heading) => (
+            <li class:list={['toc__item', heading.depth === 3 && 'toc__item--deep']}>
+              <a class="toc__link" href={`#${heading.slug}`} data-toc-link={heading.slug}>
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </details>
+    </nav>
+  )
+}
+
+<style>
+  /*
+   * Duas formas, um markup só.
+   *
+   * Estreito: bloco recolhido no fluxo do artigo, logo antes do texto.
+   * Largo: trilho fixo à direita, sempre aberto.
+   *
+   * A coluna do texto tem 46rem centralizada; abaixo de 78rem não sobra margem
+   * lateral para o trilho sem espremer a leitura, e índice sobreposto ao texto
+   * é pior que índice nenhum.
+   */
+  .toc {
+    margin-block: var(--space-3);
+  }
+
+  .toc__box {
+    border-block: 1px solid var(--color-line-soft);
+    padding-block: var(--space-1);
+  }
+
+  .toc__title {
+    color: var(--color-ink-soft);
+    cursor: pointer;
+    /* 44px de alvo: o dedo abre isto numa mão só, sem mirar. */
+    min-block-size: 2.75rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /*
+   * A seta é desenhada aqui porque `display: flex` num <summary> apaga o
+   * marcador nativo do navegador — e sem marcador nenhum o bloco fica com cara
+   * de título, não de coisa que abre. Foi exatamente assim que ele passou no
+   * primeiro teste: recolhia certo e ninguém descobriria como abrir.
+   */
+  .toc__title::after {
+    content: '';
+    margin-inline-start: auto;
+    inline-size: 0.45rem;
+    block-size: 0.45rem;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: translateY(-0.15rem) rotate(45deg);
+    transition: transform 160ms ease-out;
+  }
+
+  .toc__box[open] .toc__title::after {
+    transform: translateY(0.1rem) rotate(-135deg);
+  }
+
+  .toc__box[open] .toc__title {
+    margin-block-end: var(--space-1);
+  }
+
+  @media (min-width: 78rem) {
+    .toc {
+      position: fixed;
+      inset-block-start: var(--space-6);
+      /* Metade da janela, menos metade da coluna, menos a largura do trilho e
+         um respiro: encosta o índice na borda direita do texto sem tocá-la. */
+      inset-inline-start: calc(50% + 23rem + var(--space-3));
+      inline-size: min(14rem, calc(50% - 23rem - var(--space-4)));
+      max-block-size: calc(100dvh - var(--space-8));
+      overflow-y: auto;
+      margin-block: 0;
+      padding-inline-start: var(--space-2);
+      border-inline-start: 1px solid var(--color-line-soft);
+    }
+
+    .toc__box {
+      border-block: 0;
+      padding-block: 0;
+    }
+
+    /*
+     * No trilho o índice está sempre aberto, aberto ou fechado o <details>.
+     *
+     * São duas regras porque os navegadores escondem o conteúdo de um <details>
+     * fechado de formas diferentes: os atuais embrulham tudo no pseudo-elemento
+     * `::details-content` e o marcam com `content-visibility: hidden`; os
+     * anteriores aplicavam `display: none` direto nos filhos. Cobrir só um
+     * deles foi o bug: no desktop o clique no título abria e fechava a lista,
+     * quando ali não deveria haver nada para abrir.
+     */
+    .toc__box::details-content {
+      content-visibility: visible;
+      block-size: auto;
+    }
+
+    .toc__box > .toc__list {
+      display: block;
+    }
+
+    /*
+     * E o título deixa de responder ao ponteiro: com a lista sempre visível o
+     * clique não muda nada na tela, mas continuar clicável faz o cursor
+     * prometer um controle que não existe.
+     */
+    .toc__title {
+      cursor: default;
+      pointer-events: none;
+      min-block-size: 0;
+      margin-block-end: var(--space-1);
+      list-style: none;
+    }
+
+    .toc__title::-webkit-details-marker {
+      display: none;
+    }
+
+    /* No trilho não há o que abrir, então a seta some. */
+    .toc__title::after {
+      content: none;
+    }
+  }
+
+  .toc__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc__item {
+    margin-block: 0.35rem;
+  }
+
+  .toc__item--deep {
+    padding-inline-start: var(--space-2);
+  }
+
+  .toc__link {
+    display: block;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-snug);
+    color: var(--color-ink-soft);
+    text-decoration: none;
+    background-image: none;
+    border-inline-start: 2px solid transparent;
+    padding-inline-start: var(--space-1);
+    margin-inline-start: -1px;
+  }
+
+  .toc__link:hover {
+    color: var(--color-ink);
+  }
+
+  /*
+   * `aria-current` é o estado, e o CSS lê o estado em vez de uma classe
+   * paralela: assim o leitor de tela e o olho recebem a mesma informação, e não
+   * dá para uma das duas ficar para trás numa edição futura.
+   */
+  .toc__link[aria-current='true'] {
+    color: var(--color-accent-deep);
+    border-inline-start-color: var(--color-accent);
+  }
+</style>
+
+<script>
+  import { activeHeading } from '../scripts/motion/active-heading.ts';
+
+  const nav = document.querySelector<HTMLElement>('[data-toc]');
+
+  if (nav) {
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')];
+    const targets = links.map((link) =>
+      document.getElementById(link.dataset.tocLink ?? ''),
+    );
+
+    let current: number | null = null;
+    let scheduled = false;
+
+    const update = () => {
+      scheduled = false;
+
+      // A linha fica a um terço da janela: mais alto e a seção troca antes de o
+      // título chegar à leitura; mais baixo e ela demora depois dele passar.
+      const line = window.innerHeight / 3;
+      const atEnd = window.scrollY + window.innerHeight >= document.body.scrollHeight - 2;
+      const tops = targets.map((target) =>
+        target ? target.getBoundingClientRect().top : Number.POSITIVE_INFINITY,
+      );
+
+      const next = activeHeading({ tops, line, atEnd });
+      if (next === current) return;
+
+      if (current !== null) links[current]?.removeAttribute('aria-current');
+      if (next !== null) links[next]?.setAttribute('aria-current', 'true');
+      current = next;
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    };
+
+    update();
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule, { passive: true });
+  }
+</script>

@@ -109,6 +109,7 @@ export const ui = {
   blogBack: { 'pt-BR': 'Voltar ao blog', en: 'Back to the blog' },
   blogHome: { 'pt-BR': 'Início', en: 'Home' },
   publishedOn: { 'pt-BR': 'Publicado em', en: 'Published on' },
+  tocTitle: { 'pt-BR': 'Nesta página', en: 'On this page' },
   tagsLabel: { 'pt-BR': 'Marcadores', en: 'Tags' },
   postsInYear: { 'pt-BR': 'Posts de', en: 'Posts from' },
 

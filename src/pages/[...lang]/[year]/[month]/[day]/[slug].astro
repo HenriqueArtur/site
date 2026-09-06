@@ -1,6 +1,8 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
+import BackToTop from '../../../../../components/BackToTop.astro';
 import LanguageSwitcher from '../../../../../components/LanguageSwitcher.astro';
+import PostToc from '../../../../../components/PostToc.astro';
 import Base from '../../../../../layouts/Base.astro';
 import { formatPeriod } from '../../../../../lib/i18n/format-period.ts';
 import { type Locale, locales } from '../../../../../lib/i18n/locales.ts';
@@ -61,7 +63,9 @@ export async function getStaticPaths() {
 const { locale, post, entryId, translated } = Astro.props;
 
 const entry = translated && entryId ? await getEntry('blog', entryId) : undefined;
-const Content = entry ? (await render(entry)).Content : null;
+const rendered = entry ? await render(entry) : undefined;
+const Content = rendered?.Content ?? null;
+const headings = rendered?.headings ?? [];
 
 const prefix = locale === 'en' ? '/en' : '';
 const publishedLabel = `${pad(post.day)} ${monthName(post.month, locale)} ${post.year}`;
@@ -143,6 +147,8 @@ const schema = translated
               </ul>
             )}
 
+            <PostToc headings={headings} locale={locale} />
+
             <div class="post-body">
               <Content />
             </div>
@@ -167,6 +173,8 @@ const schema = translated
       </p>
     </footer>
   </div>
+
+  <BackToTop locale={locale} />
 </Base>
 
 <style>
