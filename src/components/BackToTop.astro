@@ -96,17 +96,21 @@ const { locale } = Astro.props;
   const button = document.querySelector<HTMLElement>('[data-to-top]');
   const about = document.querySelector<HTMLElement>('#sobre');
 
-  if (button && about) {
+  if (button) {
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
     let visible = false;
     let threshold = 0;
     let scheduled = false;
 
-    // O limiar é o fim do "Sobre" em coordenadas do documento: o botão só
-    // aparece depois que aquela seção passou inteira pelo topo da janela.
+    // Na home o limiar é o fim do "Sobre" em coordenadas do documento: o botão
+    // só aparece depois que aquela seção passou inteira pelo topo da janela.
+    //
+    // Num post não existe seção equivalente, e o limiar vira uma tela cheia de
+    // rolagem. Antes disso o botão competiria com o começo do texto, que é
+    // justamente onde a atenção do leitor precisa estar.
     const measure = () => {
-      threshold = about.getBoundingClientRect().bottom + window.scrollY;
+      threshold = about ? about.getBoundingClientRect().bottom + window.scrollY : window.innerHeight;
     };
 
     const update = () => {
