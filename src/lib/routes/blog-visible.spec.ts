@@ -6,11 +6,11 @@ describe('blogVisible', () => {
     expect(blogVisible(true)).toBe(true);
   });
 
-  it('esconde o blog no build publicado', () => {
-    // Enquanto não há conteúdo suficiente. Quando houver, esta expectativa
-    // muda junto com a regra — e é o teste que obriga a decisão a ser
-    // explícita em vez de acontecer por acidente.
-    expect(blogVisible(false)).toBe(false);
+  it('mostra o blog no build publicado', () => {
+    // Mudou em setembro de 2026, com o primeiro artigo de verdade. Antes era
+    // `false` aqui, e este teste é o que obrigou a decisão a ser explícita em
+    // vez de acontecer por acidente — vale nos dois sentidos.
+    expect(blogVisible(false)).toBe(true);
   });
 
   it('devolve booleano, não valor truthy', () => {
