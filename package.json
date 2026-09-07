@@ -25,12 +25,12 @@
     "three": "0.185.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.6",
-    "@gltf-transform/cli": "4.4.2",
-    "@types/three": "0.185.1",
-    "archwarden": "0.5.1",
+    "@biomejs/biome": "2.5.12",
+    "@gltf-transform/cli": "4.5.0",
+    "@types/three": "0.185.4",
+    "archwarden": "0.37.0",
     "husky": "9.1.7",
-    "sharp": "0.35.3",
+    "sharp": "0.35.4",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }
