@@ -21,13 +21,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "astro": "7.1.6",
-    "three": "0.185.1"
+    "astro": "7.3.2",
+    "three": "0.186.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.6",
     "@gltf-transform/cli": "4.4.2",
-    "@types/three": "0.185.1",
+    "@types/three": "0.186.0",
     "archwarden": "0.5.1",
     "husky": "9.1.7",
     "sharp": "0.35.3",
